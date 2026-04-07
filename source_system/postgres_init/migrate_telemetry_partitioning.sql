@@ -21,3 +21,6 @@ CREATE TABLE truck_telemetry_default PARTITION OF truck_telemetry DEFAULT;
 
 -- Add the new partitioned table to the Debezium publication
 ALTER PUBLICATION debezium_publication ADD TABLE truck_telemetry;
+
+-- Add optimized index to the parent table (propagates to partitions)
+CREATE INDEX idx_telemetry_truck_time ON truck_telemetry (truck_id, timestamp DESC);

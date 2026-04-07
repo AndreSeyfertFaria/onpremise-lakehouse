@@ -27,15 +27,22 @@ CREATE TABLE IF NOT EXISTS orders (
     delivered_at TIMESTAMP
 );
 
--- Telemetry Table (Real-time Streaming Pulse)
+-- Telemetry Table (Real-time Streaming Pulse) - Partitioned by timestamp
 CREATE TABLE IF NOT EXISTS truck_telemetry (
-    id SERIAL PRIMARY KEY,
+    id SERIAL,
     truck_id VARCHAR(10) REFERENCES trucks(id),
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
     speed_kmh INT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id, timestamp)
+) PARTITION BY RANGE (timestamp);
+
+-- Default partition to ensure the system works even before automated partition creation
+CREATE TABLE IF NOT EXISTS truck_telemetry_default PARTITION OF truck_telemetry DEFAULT;
+
+-- Optimized Index (propagates to all partitions)
+CREATE INDEX IF NOT EXISTS idx_telemetry_truck_time ON truck_telemetry (truck_id, timestamp DESC);
 
 -- ============================================================
 -- CDC / Debezium Setup
