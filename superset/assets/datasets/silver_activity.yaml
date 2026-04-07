@@ -1,0 +1,39 @@
+table_name: Truck Activity (silver)
+main_dttm_col: activity_date
+description: "Raw daily performance logs for every truck in the fleet, including distance traveled and deadhead (empty) kilometers."
+schema: silver
+sql: |
+  SELECT 
+    *
+  FROM iceberg.silver.truck_activity
+uuid: e1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
+extra: {}
+columns:
+  - column_name: activity_date
+    verbose_name: "Activity Date"
+    is_dttm: true
+    type: DATE
+  - column_name: truck_id
+    verbose_name: "Vehicle ID"
+    is_active: true
+  - column_name: total_distance_km
+    verbose_name: "Gross Distance (KM)"
+    is_active: true
+  - column_name: total_deadhead_km
+    verbose_name: "Empty Distance (KM)"
+    is_active: true
+metrics:
+  - metric_name: total_distance_km
+    verbose_name: "Total Distance Driven"
+    description: "Sum of all kilometers driven (Loaded + Deadhead)."
+    expression: SUM(total_distance_km)
+  - metric_name: total_deadhead
+    verbose_name: "Total Deadhead"
+    description: "Total kilometers driven without cargo (empty return/repositioning)."
+    expression: SUM(total_deadhead_km)
+  - metric_name: deadhead_vs_loaded
+    verbose_name: "Deadhead Ratio (%)"
+    description: "Percentage of total distance driven without cargo. Lower is better."
+    expression: SUM(total_deadhead_km) / NULLIF(SUM(total_distance_km), 0)
+version: 1.0.0

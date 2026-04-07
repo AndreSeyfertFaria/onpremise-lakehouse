@@ -1,0 +1,150 @@
+{
+  "writerVersion" : "451",
+  "owner" : "admin",
+  "tableType" : "MANAGED_TABLE",
+  "dataColumns" : [ {
+    "name" : "trip_date",
+    "type" : "date",
+    "properties" : { }
+  }, {
+    "name" : "origin_district",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "destination_district",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "order_count",
+    "type" : "bigint",
+    "properties" : { }
+  }, {
+    "name" : "avg_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "min_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "max_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "avg_duration_min",
+    "type" : "decimal(23,1)",
+    "properties" : { }
+  }, {
+    "name" : "median_duration_min",
+    "type" : "float",
+    "properties" : { }
+  }, {
+    "name" : "avg_deadhead_ratio",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "corridor_otd_rate",
+    "type" : "decimal(22,1)",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ ],
+  "parameters" : {
+    "trino_version" : "451",
+    "trino_query_id" : "20260326_185714_00087_u247s",
+    "transactional" : "false",
+    "auto.purge" : "false",
+    "numFiles" : "1",
+    "numRows" : "30",
+    "rawDataSize" : "3890",
+    "totalSize" : "3196",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "PARQUET",
+  "serdeParameters" : { },
+  "columnStatistics" : {
+    "min_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 1.83,
+        "max" : 9.92
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 30
+    },
+    "order_count" : {
+      "integerStatistics" : {
+        "min" : 29,
+        "max" : 58
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 20
+    },
+    "destination_district" : {
+      "maxValueSizeInBytes" : 23,
+      "averageColumnLength" : 15.333333333333334,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 6
+    },
+    "trip_date" : {
+      "dateStatistics" : {
+        "min" : "1970-01-21",
+        "max" : "1970-01-21"
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "avg_deadhead_ratio" : {
+      "doubleStatistics" : {
+        "min" : 0.304,
+        "max" : 0.6606
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 30
+    },
+    "median_duration_min" : {
+      "doubleStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "corridor_otd_rate" : {
+      "decimalStatistics" : {
+        "min" : 1.0,
+        "max" : 1.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "max_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 10.17,
+        "max" : 22.94
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 30
+    },
+    "avg_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 5.55,
+        "max" : 17.66
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 30
+    },
+    "avg_duration_min" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "origin_district" : {
+      "maxValueSizeInBytes" : 23,
+      "averageColumnLength" : 15.333333333333334,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 6
+    }
+  }
+}

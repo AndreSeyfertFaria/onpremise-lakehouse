@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: order_trips
+    description: "One row per completed order trip with distance and duration metrics."
+    columns:
+      - name: order_id
+        description: "Primary key for the order"
+        tests:
+          - unique
+          - not_null
+      - name: truck_id
+        description: "Foreign key for the assigned truck"
+        tests:
+          - not_null
+      - name: total_distance_km
+        description: "Total driven distance for the trip"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: total_duration_min
+        description: "Total trip duration in minutes"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 120
+
+  - name: truck_activity
+    description: "Daily activity summary per truck."
+    columns:
+      - name: truck_id
+        description: "The truck ID"
+        tests:
+          - not_null
+      - name: activity_date
+        description: "The date of the activity"
+        tests:
+          - not_null
+      - name: trips_completed
+        description: "Total trips completed by the truck on the given date"
+        tests:
+          - not_null

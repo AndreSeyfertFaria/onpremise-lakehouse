@@ -1,0 +1,23 @@
+{
+  "writerVersion" : "451",
+  "owner" : "admin",
+  "tableType" : "VIRTUAL_VIEW",
+  "dataColumns" : [ {
+    "name" : "dummy",
+    "type" : "string",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ ],
+  "parameters" : {
+    "comment" : "Presto View",
+    "presto_view" : "true",
+    "trino_created_by" : "Trino Hive connector",
+    "trino_version" : "451",
+    "trino_query_id" : "20260325_193607_00115_u247s"
+  },
+  "originalStorageFormat" : { },
+  "serdeParameters" : { },
+  "viewOriginalText" : "/* Presto View: eyJvcmlnaW5hbFNxbCI6IldJVEhcbiAgcmF3IEFTIChcbiAgIFNFTEVDVFxuICAgICBhZnRlci5pZCB0cnVja19pZFxuICAgLCBhZnRlci5tb2RlbCBtb2RlbFxuICAgLCBhZnRlci5jYXBhY2l0eV9rZyBjYXBhY2l0eV9rZ1xuICAgLCBsb3dlcih0cmltKEJPVEggRlJPTSBhZnRlci5zdGF0dXMpKSBzdGF0dXNcbiAgICwgb3BcbiAgICwgdHNfbXNcbiAgIEZST01cbiAgICAgXCJoaXZlXCIuXCJicm9uemVcIi5cInRydWNrc19yYXdcIlxuICAgV0hFUkUgKG9wIElOICgnYycsICd1JywgJ3InKSlcbikgXG4sIGRlZHVwZWQgQVMgKFxuICAgU0VMRUNUICpcbiAgIEZST01cbiAgICAgKFxuICAgICAgU0VMRUNUXG4gICAgICAgICpcbiAgICAgICwgcm93X251bWJlcigpIE9WRVIgKFBBUlRJVElPTiBCWSB0cnVja19pZCBPUkRFUiBCWSB0c19tcyBERVNDKSByblxuICAgICAgRlJPTVxuICAgICAgICByYXdcbiAgICkgXG4gICBXSEVSRSAocm4gPSAxKVxuKSBcblNFTEVDVFxuICB0cnVja19pZFxuLCBtb2RlbFxuLCBDQVNUKGNhcGFjaXR5X2tnIEFTIGludGVnZXIpIGNhcGFjaXR5X2tnXG4sIHN0YXR1c1xuLCAoQ0FTRSBXSEVOIChzdGF0dXMgSU4gKCdhdmFpbGFibGUnLCAnaW5fdHJhbnNpdCcsICdtYWludGVuYW5jZScpKSBUSEVOIHRydWUgRUxTRSBmYWxzZSBFTkQpIGlzX3ZhbGlkX3N0YXR1c1xuRlJPTVxuICBkZWR1cGVkXG4iLCJjYXRhbG9nIjoiaGl2ZSIsInNjaGVtYSI6ImJyb256ZSIsImNvbHVtbnMiOlt7Im5hbWUiOiJ0cnVja19pZCIsInR5cGUiOiJ2YXJjaGFyIn0seyJuYW1lIjoibW9kZWwiLCJ0eXBlIjoidmFyY2hhciJ9LHsibmFtZSI6ImNhcGFjaXR5X2tnIiwidHlwZSI6ImludGVnZXIifSx7Im5hbWUiOiJzdGF0dXMiLCJ0eXBlIjoidmFyY2hhciJ9LHsibmFtZSI6ImlzX3ZhbGlkX3N0YXR1cyIsInR5cGUiOiJib29sZWFuIn1dLCJvd25lciI6ImFkbWluIiwicnVuQXNJbnZva2VyIjpmYWxzZSwicGF0aCI6W119 */",
+  "viewExpandedText" : "/* Presto View */",
+  "columnStatistics" : { }
+}

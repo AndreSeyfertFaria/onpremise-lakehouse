@@ -1,0 +1,129 @@
+# Streaming stack: Kafka (KRaft, no Zookeeper) + Kafka Connect
+#
+# Connects to TWO external networks:
+#   - logistics_source_net  -> to reach postgres_source (source_system stack)
+#   - infra_lakehouse_net   -> to reach localstack (infra stack)
+#
+# Start order:
+#   1. cd source_system && docker-compose up -d
+#   2. cd infra && docker-compose up -d
+#   3. cd streaming && docker-compose up -d
+#   4. bash register_connectors.sh
+
+services:
+
+  # -- Kafka (Official Apache image with native KRaft support) -----
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka_broker
+    ports:
+      - "9092:9092"
+    environment:
+      # Native KRaft settings
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+
+      # Listeners
+      - KAFKA_LISTENERS=PLAINTEXT://:29092,CONTROLLER://:9093,EXTERNAL://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
+      # Topic and single-node optimizations
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_LOG_RETENTION_HOURS=24
+
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - streaming_net
+      - logistics_source_net
+      - infra_lakehouse_net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+
+  # -- Kafka Connect (with Debezium + S3 Sink baked in) -------------
+  kafka-connect:
+    build:
+      context: .
+      dockerfile: Dockerfile.connect
+    image: kafka-connect-logistics:latest
+    container_name: kafka_connect
+    ports:
+      - "8083:8083"
+    environment:
+      # Kafka Connect basics
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:29092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_REST_PORT: "8083"
+      CONNECT_GROUP_ID: "logistics-connect-group"
+
+      # Internal topics for Connect state
+      CONNECT_CONFIG_STORAGE_TOPIC: "_connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "_connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "_connect-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+
+      # Converter: JSON without schema (lighter payload for portfolio demo)
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      # Plugin path - connectors installed by Dockerfile.connect
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+
+      # AWS credentials for the S3 Sink -> LocalStack
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+
+      # Source DB credentials (read by connector JSON at registration time)
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-logistics_db}
+
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - streaming_net
+      - logistics_source_net
+      - infra_lakehouse_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8083/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+
+volumes:
+  kafka_data:
+    driver: local
+
+networks:
+  # Internal network for this stack
+  streaming_net:
+    driver: bridge
+
+  # External network from source_system stack (postgres lives here)
+  logistics_source_net:
+    external: true
+    name: logistics_source_net
+
+  # External network from infra stack (localstack lives here)
+  infra_lakehouse_net:
+    external: true
+    name: infra_lakehouse_net

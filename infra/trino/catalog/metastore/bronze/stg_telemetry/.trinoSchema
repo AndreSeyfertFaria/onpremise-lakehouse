@@ -1,0 +1,23 @@
+{
+  "writerVersion" : "451",
+  "owner" : "admin",
+  "tableType" : "VIRTUAL_VIEW",
+  "dataColumns" : [ {
+    "name" : "dummy",
+    "type" : "string",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ ],
+  "parameters" : {
+    "comment" : "Presto View",
+    "presto_view" : "true",
+    "trino_created_by" : "Trino Hive connector",
+    "trino_version" : "451",
+    "trino_query_id" : "20260325_193607_00116_u247s"
+  },
+  "originalStorageFormat" : { },
+  "serdeParameters" : { },
+  "viewOriginalText" : "/* Presto View: eyJvcmlnaW5hbFNxbCI6IldJVEhcbiAgcmF3IEFTIChcbiAgIFNFTEVDVFxuICAgICBhZnRlci50cnVja19pZCB0cnVja19pZFxuICAgLCBDQVNUKGFmdGVyLmxhdGl0dWRlIEFTIGRvdWJsZSkgbGF0aXR1ZGVcbiAgICwgQ0FTVChhZnRlci5sb25naXR1ZGUgQVMgZG91YmxlKSBsb25naXR1ZGVcbiAgICwgQ0FTVChhZnRlci5zcGVlZF9rbWggQVMgaW50ZWdlcikgc3BlZWRfa21oXG4gICAsIENBU1QoZnJvbV91bml4dGltZSgoYWZ0ZXIudGltZXN0YW1wIC8gREVDSU1BTCAnMTAwMDAwMC4wJykpIEFTIHRpbWVzdGFtcCkgZXZlbnRfdHNcbiAgICwgdHNfbXNcbiAgIEZST01cbiAgICAgXCJoaXZlXCIuXCJicm9uemVcIi5cInRydWNrX3RlbGVtZXRyeV9yYXdcIlxuICAgV0hFUkUgKG9wIElOICgnYycsICdyJykpXG4pIFxuLCBmaWx0ZXJlZCBBUyAoXG4gICBTRUxFQ1QgKlxuICAgRlJPTVxuICAgICByYXdcbiAgIFdIRVJFICgobGF0aXR1ZGUgQkVUV0VFTiBERUNJTUFMICctMjYuMCcgQU5EIERFQ0lNQUwgJy0yNS4yJykgQU5EIChsb25naXR1ZGUgQkVUV0VFTiBERUNJTUFMICctNDkuNScgQU5EIERFQ0lNQUwgJy00OS4xJykgQU5EIChzcGVlZF9rbWggPj0gMCkgQU5EIChsYXRpdHVkZSBJUyBOT1QgTlVMTCkgQU5EIChsb25naXR1ZGUgSVMgTk9UIE5VTEwpKVxuKSBcbiwgZGVkdXBlZCBBUyAoXG4gICBTRUxFQ1QgKlxuICAgRlJPTVxuICAgICAoXG4gICAgICBTRUxFQ1RcbiAgICAgICAgKlxuICAgICAgLCByb3dfbnVtYmVyKCkgT1ZFUiAoUEFSVElUSU9OIEJZIHRydWNrX2lkLCBldmVudF90cyBPUkRFUiBCWSB0c19tcyBERVNDKSByblxuICAgICAgRlJPTVxuICAgICAgICBmaWx0ZXJlZFxuICAgKSBcbiAgIFdIRVJFIChybiA9IDEpXG4pIFxuU0VMRUNUXG4gIHRydWNrX2lkXG4sIGxhdGl0dWRlXG4sIGxvbmdpdHVkZVxuLCBzcGVlZF9rbWhcbiwgZXZlbnRfdHNcbkZST01cbiAgZGVkdXBlZFxuIiwiY2F0YWxvZyI6ImhpdmUiLCJzY2hlbWEiOiJicm9uemUiLCJjb2x1bW5zIjpbeyJuYW1lIjoidHJ1Y2tfaWQiLCJ0eXBlIjoidmFyY2hhciJ9LHsibmFtZSI6ImxhdGl0dWRlIiwidHlwZSI6ImRvdWJsZSJ9LHsibmFtZSI6ImxvbmdpdHVkZSIsInR5cGUiOiJkb3VibGUifSx7Im5hbWUiOiJzcGVlZF9rbWgiLCJ0eXBlIjoiaW50ZWdlciJ9LHsibmFtZSI6ImV2ZW50X3RzIiwidHlwZSI6InRpbWVzdGFtcCgzKSJ9XSwib3duZXIiOiJhZG1pbiIsInJ1bkFzSW52b2tlciI6ZmFsc2UsInBhdGgiOltdfQ== */",
+  "viewExpandedText" : "/* Presto View */",
+  "columnStatistics" : { }
+}

@@ -1,0 +1,13 @@
+{
+    "tableName": "truck_telemetry_raw",
+    "schemaName": "bronze",
+    "topicName": "cdc.public.truck_telemetry",
+    "message": {
+        "dataFormat": "json",
+        "fields": [
+            { "name": "op", "mapping": "op", "type": "VARCHAR" },
+            { "name": "ts_ms", "mapping": "ts_ms", "type": "BIGINT" },
+            { "name": "after", "mapping": "after", "type": "VARCHAR" }
+        ]
+    }
+}

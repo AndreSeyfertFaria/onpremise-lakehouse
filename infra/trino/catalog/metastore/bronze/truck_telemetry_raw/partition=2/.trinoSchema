@@ -1,0 +1,27 @@
+{
+  "columns" : [ {
+    "name" : "op",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "ts_ms",
+    "type" : "bigint",
+    "properties" : { }
+  }, {
+    "name" : "after",
+    "type" : "struct<id:int,truck_id:string,latitude:double,longitude:double,speed_kmh:int,timestamp:bigint>",
+    "properties" : { }
+  }, {
+    "name" : "source",
+    "type" : "struct<table:string,db:string,ts_ms:bigint,snapshot:string>",
+    "properties" : { }
+  } ],
+  "parameters" : {
+    "trino_query_id" : "20260326_200038_00332_756yp",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "JSON",
+  "serdeParameters" : { },
+  "externalLocation" : "s3://data-lakehouse-bronze/streaming/cdc.public.truck_telemetry/partition=2",
+  "columnStatistics" : { }
+}

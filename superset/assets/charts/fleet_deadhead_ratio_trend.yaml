@@ -1,0 +1,22 @@
+slice_name: "Fleet Empty Running (Deadhead) Trend"
+description: "Identifies periods of operational inefficiency where vehicles are driving without cargo (higher values indicate wasted fuel/time)."
+viz_type: line
+params:
+  metrics:
+    - total_deadhead
+  time_range: Last 30 days
+  granularity_sqla: activity_date
+  series_column_names:
+    total_deadhead: "Daily Deadhead KM"
+  show_markers: true
+  line_interpolation: smooth
+  x_axis_format: smart_date
+  y_axis_format: "SMART_NUMBER"
+  rich_tooltip: true
+  color_picker:
+    r: 255
+    g: 127
+    b: 68
+uuid: 81e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: e1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

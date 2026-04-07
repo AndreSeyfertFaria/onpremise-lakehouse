@@ -1,0 +1,43 @@
+{
+  "writerVersion" : "451",
+  "owner" : "trino",
+  "tableType" : "EXTERNAL_TABLE",
+  "dataColumns" : [ {
+    "name" : "op",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "ts_ms",
+    "type" : "bigint",
+    "properties" : { }
+  }, {
+    "name" : "after",
+    "type" : "struct<id:string,model:string,capacity_kg:int,status:string>",
+    "properties" : { }
+  }, {
+    "name" : "before",
+    "type" : "struct<id:string,model:string,capacity_kg:int,status:string>",
+    "properties" : { }
+  }, {
+    "name" : "source",
+    "type" : "struct<table:string,db:string,ts_ms:bigint,snapshot:string>",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ {
+    "name" : "partition",
+    "type" : "int",
+    "properties" : { }
+  } ],
+  "parameters" : {
+    "trino_version" : "451",
+    "trino_query_id" : "20260324_204438_00012_etjqv",
+    "transactional" : "false",
+    "auto.purge" : "false",
+    "EXTERNAL" : "TRUE",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "JSON",
+  "serdeParameters" : { },
+  "externalLocation" : "s3://data-lakehouse-bronze/cdc/cdc.public.trucks/",
+  "columnStatistics" : { }
+}

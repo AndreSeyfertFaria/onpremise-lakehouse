@@ -1,0 +1,36 @@
+table_name: District Heatmap
+main_dttm_col: trip_date
+description: "Volume and OTD analysis between Origin and Destination districts to identify logistics corridors."
+schema: gold
+sql: |
+  SELECT
+    *
+  FROM iceberg.gold.district_heatmap
+uuid: c1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
+extra: {}
+columns:
+  - column_name: trip_date
+    is_dttm: true
+    type: DATE
+  - column_name: origin_district
+    verbose_name: "Origin"
+    is_active: true
+  - column_name: destination_district
+    verbose_name: "Destination"
+    is_active: true
+metrics:
+  - metric_name: avg_duration
+    verbose_name: "Avg Trip Duration"
+    description: "Average duration of trips on this corridor in minutes."
+    expression: AVG(avg_duration_min)
+  - metric_name: order_count
+    verbose_name: "Volume (Orders)"
+    description: "Total orders processed on this corridor."
+    expression: SUM(order_count)
+  - metric_name: avg_corridor_otd
+    verbose_name: "Corridor OTD Rate"
+    description: "On-time delivery rate specifically for this corridor."
+    expression: AVG(corridor_otd_rate)
+version: 1.0.0
+

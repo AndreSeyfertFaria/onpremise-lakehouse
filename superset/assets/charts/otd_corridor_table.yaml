@@ -1,0 +1,14 @@
+slice_name: Corridor volume table
+viz_type: table
+params:
+  metrics:
+    - order_count
+    - avg_duration
+    - avg_corridor_otd
+  groupby:
+    - origin_district
+    - destination_district
+  time_range: Last 30 days
+uuid: 71e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: c1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

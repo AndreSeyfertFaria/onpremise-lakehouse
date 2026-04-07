@@ -1,0 +1,15 @@
+slice_name: Avg trip duration by district (heatmap)
+viz_type: heatmap_v2
+params:
+  x_axis: origin_district
+  groupby: destination_district
+  metric: avg_duration
+  linear_color_scheme: blue_white_yellow
+  show_legend: true
+  show_values: true
+  normalized: false
+  y_axis_format: SMART_NUMBER
+  x_axis_time_format: smart_date
+uuid: 21e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: c1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

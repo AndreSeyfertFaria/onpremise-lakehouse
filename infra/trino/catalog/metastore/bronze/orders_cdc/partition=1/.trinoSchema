@@ -1,0 +1,31 @@
+{
+  "columns" : [ {
+    "name" : "op",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "ts_ms",
+    "type" : "bigint",
+    "properties" : { }
+  }, {
+    "name" : "after",
+    "type" : "struct<id:int,truck_id:string,customer_name:string,status:string,weight_kg:int,pickup_address:string,delivery_address:string,pickup_latitude:double,pickup_longitude:double,dest_latitude:double,dest_longitude:double,created_at:bigint,dispatched_at:bigint,collected_at:bigint,delivered_at:bigint>",
+    "properties" : { }
+  }, {
+    "name" : "before",
+    "type" : "struct<id:int,status:string>",
+    "properties" : { }
+  }, {
+    "name" : "source",
+    "type" : "struct<table:string,db:string,ts_ms:bigint,snapshot:string>",
+    "properties" : { }
+  } ],
+  "parameters" : {
+    "trino_query_id" : "20260324_204438_00015_etjqv",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "JSON",
+  "serdeParameters" : { },
+  "externalLocation" : "s3://data-lakehouse-bronze/cdc/cdc.public.orders/partition=1",
+  "columnStatistics" : { }
+}

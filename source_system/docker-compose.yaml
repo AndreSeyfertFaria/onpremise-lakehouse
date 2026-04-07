@@ -1,0 +1,59 @@
+services:
+  postgres_source:
+    image: postgres:15-alpine
+    container_name: logistics_db
+    # wal_level=logical is required for Debezium CDC (logical replication)
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=5
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER-}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-}
+      - POSTGRES_DB=${POSTGRES_DB-}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./postgres_init:/docker-entrypoint-initdb.d
+    networks:
+      - source_net
+
+  logistics_engine:
+    build:
+      context: ../source_system
+      dockerfile: Dockerfile
+    container_name: logistics_simulation
+    environment:
+      - DB_HOST=postgres_source
+      - DB_NAME=${POSTGRES_DB-}
+      - DB_USER=${POSTGRES_USER-}
+      - DB_PASS=${POSTGRES_PASSWORD-}
+    depends_on:
+      - postgres_source
+    volumes:
+      - ../source_system/app:/app
+    networks:
+      - source_net
+
+  logistics_dashboard:
+    build: 
+      context: ../source_system
+      dockerfile: Dockerfile
+    container_name: logistics_ui
+    command: streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - DB_HOST=postgres_source
+      - DB_NAME=${POSTGRES_DB-}
+      - DB_USER=${POSTGRES_USER-}
+      - DB_PASS=${POSTGRES_PASSWORD-}
+    depends_on:
+      - postgres_source
+    volumes:
+      - ../source_system/app:/app
+    networks:
+      - source_net
+
+networks:
+  source_net:
+    name: logistics_source_net
+    driver: bridge

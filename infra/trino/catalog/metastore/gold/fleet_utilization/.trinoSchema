@@ -1,0 +1,148 @@
+{
+  "writerVersion" : "451",
+  "owner" : "admin",
+  "tableType" : "MANAGED_TABLE",
+  "dataColumns" : [ {
+    "name" : "metric_date",
+    "type" : "date",
+    "properties" : { }
+  }, {
+    "name" : "truck_id",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "model",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "capacity_kg",
+    "type" : "int",
+    "properties" : { }
+  }, {
+    "name" : "district",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "trips_completed",
+    "type" : "bigint",
+    "properties" : { }
+  }, {
+    "name" : "total_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "total_duration_min",
+    "type" : "decimal(38,1)",
+    "properties" : { }
+  }, {
+    "name" : "avg_deadhead_ratio",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "utilization_index",
+    "type" : "decimal(38,1)",
+    "properties" : { }
+  }, {
+    "name" : "utilization_index_7d",
+    "type" : "decimal(38,1)",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ ],
+  "parameters" : {
+    "trino_version" : "451",
+    "trino_query_id" : "20260326_184523_00075_u247s",
+    "transactional" : "false",
+    "auto.purge" : "false",
+    "numFiles" : "1",
+    "numRows" : "5",
+    "rawDataSize" : "660",
+    "totalSize" : "2367",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "PARQUET",
+  "serdeParameters" : { },
+  "columnStatistics" : {
+    "truck_id" : {
+      "maxValueSizeInBytes" : 7,
+      "averageColumnLength" : 7.0,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    },
+    "utilization_index_7d" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "total_duration_min" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "metric_date" : {
+      "dateStatistics" : {
+        "min" : "1970-01-21",
+        "max" : "1970-01-21"
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "district" : {
+      "maxValueSizeInBytes" : 16,
+      "averageColumnLength" : 14.0,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 3
+    },
+    "capacity_kg" : {
+      "integerStatistics" : {
+        "min" : 15000,
+        "max" : 25000
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    },
+    "model" : {
+      "maxValueSizeInBytes" : 8,
+      "averageColumnLength" : 8.0,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    },
+    "avg_deadhead_ratio" : {
+      "doubleStatistics" : {
+        "min" : 0.4631,
+        "max" : 0.4854
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    },
+    "utilization_index" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "trips_completed" : {
+      "integerStatistics" : {
+        "min" : 238,
+        "max" : 256
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 4
+    },
+    "total_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 2596.52,
+        "max" : 2686.98
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    }
+  }
+}

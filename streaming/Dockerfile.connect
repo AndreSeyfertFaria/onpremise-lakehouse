@@ -1,0 +1,14 @@
+# Custom Kafka Connect image with pre-installed connector plugins:
+#   - Debezium PostgreSQL Source Connector (CDC)
+#   - Confluent S3 Sink Connector (writes to LocalStack S3)
+#
+# Using a custom Dockerfile (vs. mounting JARs at runtime) ensures the stack
+# is fully reproducible and self-contained.
+
+FROM confluentinc/cp-kafka-connect:7.6.1
+
+# Install the Debezium PostgreSQL connector
+RUN confluent-hub install --no-prompt debezium/debezium-connector-postgresql:2.4.2
+
+# Install the Confluent S3 Sink connector
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:10.5.13

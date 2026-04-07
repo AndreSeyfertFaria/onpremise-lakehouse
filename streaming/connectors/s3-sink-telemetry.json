@@ -1,0 +1,41 @@
+{
+  "name": "s3-sink-telemetry",
+  "config": {
+    "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+
+    "tasks.max": "1",
+
+    "topics": "cdc.public.truck_telemetry",
+
+    "s3.region": "us-east-1",
+    "s3.bucket.name": "data-lakehouse-bronze",
+    "s3.part.size": "5242880",
+    "store.url": "http://localstack:4566",
+    "s3.path.style.access": "true",
+    "aws.access.key.id": "test",
+    "aws.secret.access.key": "test",
+
+    "topics.dir": "streaming",
+
+    "storage.class": "io.confluent.connect.s3.storage.S3Storage",
+    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+
+    "flush.size": "500",
+    "rotate.interval.ms": "60000",
+    "rotate.schedule.interval.ms": "120000",
+
+    "locale": "en_US",
+    "timezone": "UTC",
+    "timestamp.extractor": "RecordField",
+    "timestamp.field": "ts_ms",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+
+    "errors.tolerance": "all",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true"
+  }
+}

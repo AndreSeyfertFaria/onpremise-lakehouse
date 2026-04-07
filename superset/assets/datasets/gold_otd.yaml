@@ -1,0 +1,77 @@
+table_name: OTD - On Time Delivery
+main_dttm_col: trip_date
+description: "Aggregated performance metrics for on-time delivery across different districts and time periods. Includes counts for late, on-time, and fast deliveries."
+schema: gold
+sql: |
+  SELECT 
+    district,
+    trip_date,
+    otd_rate as otd_rate,
+    otd_rate_7d as otd_rate_7d,
+    total_orders,
+    'Fast' as delivery_tier,
+    fast_count as delivery_count
+  FROM iceberg.gold.otd
+  UNION ALL
+  SELECT 
+    district,
+    trip_date,
+    otd_rate as otd_rate,
+    otd_rate_7d as otd_rate_7d,
+    total_orders,
+    'On Time' as delivery_tier,
+    on_time_count as delivery_count
+  FROM iceberg.gold.otd
+  UNION ALL
+  SELECT 
+    district,
+    trip_date,
+    otd_rate as otd_rate,
+    otd_rate_7d as otd_rate_7d,
+    total_orders,
+    'Slightly Late' as delivery_tier,
+    slightly_late_count as delivery_count
+  FROM iceberg.gold.otd
+  UNION ALL
+  SELECT 
+    district,
+    trip_date,
+    otd_rate as otd_rate,
+    otd_rate_7d as otd_rate_7d,
+    total_orders,
+    'Late' as delivery_tier,
+    late_count as delivery_count
+  FROM iceberg.gold.otd
+uuid: a1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
+extra: {}
+columns:
+  - column_name: trip_date
+    verbose_name: "Trip Date"
+    is_dttm: true
+    type: DATE
+  - column_name: district
+    verbose_name: "Region / District"
+    is_active: true
+  - column_name: delivery_tier
+    verbose_name: "Delivery Classification"
+    description: "Classification of delivery speed (Fast, On Time, Slightly Late, Late)."
+    is_active: true
+metrics:
+  - metric_name: avg_otd_rate
+    verbose_name: "OTD Rate (%)"
+    description: "Average On-Time Delivery rate as a percentage of total orders."
+    expression: AVG(otd_rate)
+  - metric_name: avg_otd_rate_7d
+    verbose_name: "OTD Rate (7D Moving Avg)"
+    description: "Rolling 7-day average of the On-Time Delivery rate."
+    expression: AVG(otd_rate_7d)
+  - metric_name: delivery_count
+    verbose_name: "Order Count"
+    description: "Total number of orders within the specific delivery tier."
+    expression: SUM(delivery_count)
+  - metric_name: total_orders
+    verbose_name: "Total Volume"
+    description: "Total volume of orders processed."
+    expression: SUM(total_orders)
+version: 1.0.0

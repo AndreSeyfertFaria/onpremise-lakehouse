@@ -1,0 +1,134 @@
+dashboard_title: 'Executive Overview: Orders & Delivery Performance'
+description: Comprehensive view of delivery logistics, on-time performance trends,
+  and regional volume analysis.
+metadata:
+  cross_filters_enabled: true
+  filter_bar_orientation: HORIZONTAL
+  native_filter_configuration:
+  - id: NATIVE_FILTER-FILTER_DATE_RANGE
+    controlValues:
+      enableEmptyFilter: false
+    name: Reporting Period
+    filterType: filter_time
+    targets:
+    - {}
+    defaultDataMask:
+      extraFormData: {}
+      filterState: {}
+      ownState: {}
+    cascadeParentIds: []
+    scope:
+      excluded: []
+      rootPath:
+      - ROOT_ID
+    type: NATIVE_FILTER
+    description: Controls the time range for all charts in this dashboard.
+position:
+  CHART_HEATMAP:
+    id: CHART_HEATMAP
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 21e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 6
+    parents:
+    - ROW_TRENDS
+    type: CHART
+  CHART_KPI_ORDERS:
+    id: CHART_KPI_ORDERS
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 31e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 3
+    parents:
+    - ROW_KPI
+    type: CHART
+  CHART_OTD_DISTRICT:
+    id: CHART_OTD_DISTRICT
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 01e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 6
+    parents:
+    - ROW_TRENDS
+    type: CHART
+  CHART_OTD_TREND:
+    id: CHART_OTD_TREND
+    meta:
+      chartId: 0
+      height: 50
+      uuid: f1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 9
+    parents:
+    - ROW_KPI
+    type: CHART
+  CHART_PIE:
+    id: CHART_PIE
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 11e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 4
+    parents:
+    - ROW_DETAILS
+    type: CHART
+  CHART_TABLE:
+    id: CHART_TABLE
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 71e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 8
+    parents:
+    - ROW_DETAILS
+    type: CHART
+  DASHBOARD_VERSION_KEY: v2
+  GRID_ID:
+    children:
+    - ROW_KPI
+    - ROW_TRENDS
+    - ROW_DETAILS
+    id: GRID_ID
+    parents:
+    - ROOT_ID
+    type: GRID
+  ROOT_ID:
+    children:
+    - GRID_ID
+    id: ROOT_ID
+    type: ROOT
+  ROW_DETAILS:
+    children:
+    - CHART_PIE
+    - CHART_TABLE
+    id: ROW_DETAILS
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+  ROW_KPI:
+    children:
+    - CHART_KPI_ORDERS
+    - CHART_OTD_TREND
+    id: ROW_KPI
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+  ROW_TRENDS:
+    children:
+    - CHART_OTD_DISTRICT
+    - CHART_HEATMAP
+    id: ROW_TRENDS
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+published: true
+uuid: f1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e00
+version: 1.0.0

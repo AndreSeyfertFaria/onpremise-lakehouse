@@ -1,0 +1,35 @@
+{
+  "name": "logistics-postgres-source",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+
+    "database.hostname": "logistics_db",
+    "database.port": "5432",
+    "database.user": "admin",
+    "database.password": "admin",
+    "database.dbname": "logistics_db",
+    "database.server.name": "cdc",
+
+    "plugin.name": "pgoutput",
+    "publication.name": "debezium_publication",
+    "slot.name": "debezium_slot",
+
+    "table.include.list": "public.trucks,public.orders,public.truck_telemetry",
+
+    "topic.prefix": "cdc",
+    "topic.creation.enable": "true",
+    "topic.creation.default.replication.factor": "1",
+    "topic.creation.default.partitions": "3",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "connect",
+    "tombstones.on.delete": "false",
+
+    "snapshot.mode": "initial"
+  }
+}

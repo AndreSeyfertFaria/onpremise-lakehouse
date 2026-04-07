@@ -1,0 +1,9 @@
+{
+  "writerVersion" : "451",
+  "location" : "s3://data-lakehouse-bronze/",
+  "ownerName" : "trino",
+  "ownerType" : "USER",
+  "parameters" : {
+    "trino_query_id" : "20260324_204142_00000_etjqv"
+  }
+}

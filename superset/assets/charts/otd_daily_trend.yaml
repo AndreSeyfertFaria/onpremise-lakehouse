@@ -1,0 +1,24 @@
+slice_name: "Daily OTD Performance Trend"
+description: "Comparison of Daily OTD vs. 7-Day Moving Average to identify performance recovery or degradation."
+viz_type: line
+params:
+  metrics:
+    - avg_otd_rate
+    - avg_otd_rate_7d
+  time_range: Last 30 days
+  granularity_sqla: trip_date
+  color_picker:
+    r: 31
+    g: 168
+    b: 201
+  series_column_names:
+    avg_otd_rate: "Daily Rate"
+    avg_otd_rate_7d: "7D Moving Avg"
+  show_markers: true
+  line_interpolation: smooth
+  x_axis_format: smart_date
+  y_axis_format: ",.1%"
+  rich_tooltip: true
+uuid: f1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: a1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

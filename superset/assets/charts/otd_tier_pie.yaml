@@ -1,0 +1,22 @@
+slice_name: "Order Delivery Classification"
+description: "Distribution of orders categorized by their arrival performance relative to the target delivery window."
+viz_type: pie
+params:
+  metric: delivery_count
+  groupby:
+    - delivery_tier
+  time_range: Last 30 days
+  granularity_sqla: trip_date
+  color_scheme: "supersetColors"
+  label_colors:
+    Fast: "#185B7A"
+    On Time: "#1FA8C9"
+    Slightly Late: "#FFB366"
+    Late: "#E55B13"
+  donut: true
+  show_labels: true
+  show_legend: true
+  pie_label_type: percent
+uuid: 11e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: a1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

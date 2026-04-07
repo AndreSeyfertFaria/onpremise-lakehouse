@@ -1,0 +1,350 @@
+services:
+  localstack:
+    image: localstack/localstack:3.0.2
+    container_name: localstack
+    hostname: localstack
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?Error: LOCALSTACK_AUTH_TOKEN is required}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./localstack_data:/var/lib/localstack
+      - ./localstack/ready.d:/etc/localstack/init/ready.d
+      - infra_signals:/signals
+    networks:
+      - lakehouse_net
+
+  iceberg-catalog:
+    image: postgres:16
+    container_name: iceberg_catalog
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_USER=${ICEBERG_CATALOG_USER:?Error: ICEBERG_CATALOG_USER is required in .env}"
+      - "POSTGRES_PASSWORD=${ICEBERG_CATALOG_PASSWORD:?Error: ICEBERG_CATALOG_PASSWORD is required in .env}"
+      - "POSTGRES_DB=${ICEBERG_CATALOG_DB:?Error: ICEBERG_CATALOG_DB is required in .env}"
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "iceberg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./iceberg_catalog_data:/var/lib/postgresql/data
+      - ./iceberg-catalog/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./iceberg-catalog/auto_repair.sh:/auto_repair.sh:ro
+    networks:
+      - lakehouse_net
+
+  trino:
+    image: trinodb/trino:451
+    container_name: trino
+    restart: unless-stopped
+    depends_on:
+      iceberg-catalog:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:?Error: AWS_ACCESS_KEY_ID is required}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?Error: AWS_SECRET_ACCESS_KEY is required}"
+      - "AWS_REGION=${AWS_REGION:?Error: AWS_REGION is required}"
+      - "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:?Error: AWS_DEFAULT_REGION is required}"
+
+
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog
+      - ./trino/kafka:/etc/trino/kafka:ro
+    networks:
+      - lakehouse_net
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # [RECOVERY] Meta-Controller for Self-Healing
+  # This service ensures the S3 buckets and Catalog state are synchronized on every restart.
+  lakehouse-setup:
+    build:
+      context: ./lakehouse-setup
+      dockerfile: Dockerfile
+    container_name: lakehouse_setup
+    restart: unless-stopped
+    depends_on:
+      localstack:
+        condition: service_healthy
+      iceberg-catalog:
+        condition: service_healthy
+      trino:
+        condition: service_healthy
+    environment:
+      - TF_VAR_localstack_host=localstack
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:?Error: AWS_ACCESS_KEY_ID is required}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?Error: AWS_SECRET_ACCESS_KEY is required}"
+      - "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:?Error: AWS_DEFAULT_REGION is required}"
+      - "PGUSER=${ICEBERG_CATALOG_USER:?Error: ICEBERG_CATALOG_USER is required}"
+      - "PGPASSWORD=${ICEBERG_CATALOG_PASSWORD:?Error: ICEBERG_CATALOG_PASSWORD is required}"
+      - "PGDATABASE=${ICEBERG_CATALOG_DB:?Error: ICEBERG_CATALOG_DB is required}"
+      - "PGHOST=iceberg-catalog"
+    volumes:
+      - ./terraform:/workspace
+      - ./trino/init.sql:/init.sql:ro
+      - ./iceberg-catalog/auto_repair.sh:/auto_repair.sh:ro
+      - infra_signals:/signals
+    working_dir: /workspace
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        # 1. Setup health signaling
+        mkdir -p /signals
+        chmod 777 /signals
+
+        while true; do
+          # 3. Detect Fresh Start Signal (created by LocalStack ready.d)
+          if [ -f "/signals/reset_required" ]; then
+            echo "[Self-Healing] Detected LocalStack reset. Synchronizing catalog..."
+
+            # Wipe Zombie metadata from Postgres (Safe even if catalog is already empty)
+            until psql -h iceberg-catalog -c "TRUNCATE iceberg_tables, iceberg_namespaces, iceberg_namespace_properties CASCADE;"; do
+              echo "[Self-Healing] Waiting for Postgres to be ready for catalog synchronization..."
+              sleep 2
+            done
+
+            # Re-create S3 Buckets in LocalStack
+            terraform init && terraform apply -auto-approve
+
+            # Re-initialize Trino Schemas
+            trino --server http://trino:8080 --catalog iceberg --schema default --file /init.sql
+
+            if [ $? -eq 0 ]; then
+              rm -f /signals/reset_required
+              echo "[Self-Healing] Infrastructure reset complete."
+
+              # SIGNAL INFRASTRUCTURE READINESS (Allows Airflow to start)
+              touch /signals/lakehouse_ready
+
+              echo "[Self-Healing] Restoring logical observability baseline..."
+              # AUTO-REPAIR ELEMENTARY (Structure + Metadata Sync)
+              touch /signals/run_elementary
+
+              echo "[Self-Healing] 100% Recovery complete."
+            else
+              echo "[Self-Healing] ERROR: Infrastructure synchronization failed. Will retry..."
+            fi
+          fi
+
+          # 4. Mark system as Ready/Healthy if reset is not in progress
+          if [ ! -f "/signals/reset_required" ]; then
+             touch /signals/lakehouse_ready
+          fi
+          sleep 10
+        done
+    healthcheck:
+      test: ["CMD", "test", "-f", "/signals/lakehouse_ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - lakehouse_net
+
+
+  # Airflow Services
+  airflow-postgres:
+    image: postgres:13
+    container_name: airflow_postgres
+    environment:
+      - "POSTGRES_USER=${AIRFLOW_DB_USER:?Error: AIRFLOW_DB_USER is required}"
+      - "POSTGRES_PASSWORD=${AIRFLOW_DB_PASSWORD:?Error: AIRFLOW_DB_PASSWORD is required}"
+      - "POSTGRES_DB=${AIRFLOW_DB_NAME:?Error: AIRFLOW_DB_NAME is required}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - lakehouse_net
+
+  airflow-init:
+    build: 
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow_init
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      lakehouse-setup:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
+
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
+      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - _AIRFLOW_DB_UPGRADE=True
+      - _AIRFLOW_WWW_USER_CREATE=True
+      - "_AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_ADMIN_USER:?Error: AIRFLOW_ADMIN_USER is required}"
+      - "_AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_ADMIN_PASSWORD:?Error: AIRFLOW_ADMIN_PASSWORD is required}"
+
+      - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
+      - DBT_LOG_PATH=/tmp
+      - DBT_TARGET_PATH=/tmp/dbt_target
+      - AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=60
+      - AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=60
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - airflow_logs:/opt/airflow/logs
+      - ../dbt_project:/opt/airflow/dbt
+    command: bash -c "airflow db migrate && export DBT_LOG_PATH=/tmp && cd /opt/airflow/dbt && /opt/airflow/dbt_venv/bin/dbt deps"
+    networks:
+      - lakehouse_net
+
+  airflow-webserver:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow_webserver
+    hostname: airflow_webserver
+    restart: unless-stopped
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
+
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
+      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
+      - DBT_LOG_PATH=/tmp
+      - DBT_TARGET_PATH=/tmp/dbt_target
+      - AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=60
+      - AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=60
+      - AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT=300
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock
+      - airflow_logs:/opt/airflow/logs
+      - ../dbt_project:/opt/airflow/dbt
+    command: webserver
+    networks:
+      - lakehouse_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  airflow-scheduler:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow_scheduler
+    hostname: airflow_scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
+
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
+      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
+      - DBT_LOG_PATH=/tmp
+      - DBT_TARGET_PATH=/tmp/dbt_target
+      - AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=60
+      - AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=60
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock
+      - airflow_logs:/opt/airflow/logs
+      - ../dbt_project:/opt/airflow/dbt
+    command: scheduler
+    networks:
+      - lakehouse_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  airflow-repair:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow_repair
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
+      - DBT_LOG_PATH=/tmp
+      - DBT_TARGET_PATH=/tmp/dbt_target
+    volumes:
+      - infra_signals:/signals
+      - ../dbt_project:/opt/airflow/dbt
+    command: >
+      bash -c "while true; do 
+        if [ -f /signals/run_elementary ]; then 
+          rm -f /signals/run_elementary; 
+          echo '[Self-Healing] Running elementary sync...';
+          cd /opt/airflow/dbt && /opt/airflow/dbt_venv/bin/dbt run --select elementary && /opt/airflow/dbt_venv/bin/dbt run-operation elementary.on_run_end; 
+        fi; 
+        sleep 5; 
+      done"
+    networks:
+      - lakehouse_net
+
+  elementary:
+    build:
+      context: ./elementary
+      dockerfile: Dockerfile
+    container_name: elementary_ui
+    restart: unless-stopped
+    depends_on:
+      trino:
+        condition: service_healthy
+      lakehouse-setup:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    volumes:
+      - ../dbt_project:/dbt:ro
+      - ./elementary/macros/trino_fix.sql:/usr/local/lib/python3.10/site-packages/elementary/monitor/dbt_project/macros/trino_fix.sql:ro
+    networks:
+      - lakehouse_net
+
+networks:
+  lakehouse_net:
+    name: infra_lakehouse_net
+    driver: bridge
+
+volumes:
+  airflow_logs:
+  infra_signals:

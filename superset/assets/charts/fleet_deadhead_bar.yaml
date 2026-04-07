@@ -1,0 +1,23 @@
+slice_name: "Vehicle Loading Comparison"
+description: "Comparison of total distance vs. empty (deadhead) distance per truck. Identifying vehicles with excessive empty-running."
+viz_type: dist_bar
+params:
+  metrics:
+    - total_deadhead
+    - total_distance_km
+  groupby:
+    - truck_id
+  time_range: Last 30 days
+  granularity_sqla: activity_date
+  series_column_names:
+    total_deadhead: "Empty KM"
+    total_distance_km: "Total KM"
+  y_axis_format: "SMART_NUMBER"
+  show_values: true
+  x_axis_label: "Truck ID"
+  y_axis_label: "Kilometers"
+  order_bars: true
+  color_scheme: "supersetColors"
+uuid: 61e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: e1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: fleet_utilization
+    description: "Daily fleet utilization metrics based on truck capacity and activity."
+    columns:
+      - name: metric_date
+        description: "Date of operation"
+        tests:
+          - not_null
+      - name: truck_id
+        description: "Truck identifier"
+        tests:
+          - not_null
+      - name: total_distance_km
+        description: "Total distance driven"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+  - name: otd
+    description: "On-Time Delivery metrics by district and date."
+    columns:
+      - name: trip_date
+        description: "Date of delivery"
+      - name: district
+        description: "District of the delivery"
+        tests:
+          - not_null
+      - name: total_orders
+        description: "Total trips completed"
+        tests:
+          - not_null
+
+  - name: district_heatmap
+    description: "Geographic hot-spots for deliveries."
+    columns:
+      - name: trip_date
+        description: "Date of activity"
+      - name: origin_district
+        description: "The primary district name"
+        tests:
+          - not_null
+      - name: order_count
+        description: "Outbound deliveries from this district"
+        tests:
+          - not_null

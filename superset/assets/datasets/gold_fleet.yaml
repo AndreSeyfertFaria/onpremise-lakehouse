@@ -1,0 +1,36 @@
+table_name: Fleet Utilization
+main_dttm_col: metric_date
+description: "Key metrics for fleet efficiency, distance driven, and truck utilization indexes."
+schema: gold
+sql: |
+  SELECT 
+    *
+  FROM iceberg.gold.fleet_utilization
+uuid: b1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
+extra: {}
+columns:
+  - column_name: metric_date
+    verbose_name: "Event Date"
+    is_dttm: true
+    type: DATE
+  - column_name: truck_id
+    verbose_name: "Vehicle ID"
+    is_active: true
+  - column_name: district
+    verbose_name: "Home District"
+    is_active: true
+metrics:
+  - metric_name: avg_utilization
+    verbose_name: "Utilization Rate"
+    description: "Percentage of time the vehicle was actively on a trip."
+    expression: AVG(utilization_index)
+  - metric_name: avg_utilization_7d
+    verbose_name: "Utilization Rate (7D Avg)"
+    description: "Average utilization over the last 7 days."
+    expression: AVG(utilization_index_7d)
+  - metric_name: total_distance
+    verbose_name: "Total Distance (KM)"
+    description: "Total kilometers driven by the fleet."
+    expression: SUM(total_distance_km)
+version: 1.0.0

@@ -1,0 +1,25 @@
+local_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: none
+      user: '{{ env_var("TRINO_USER", "admin") }}'
+      host: trino
+      port: 8080
+      catalog: iceberg
+      schema: bronze
+      threads: 2
+
+elementary:
+  target: default
+  outputs:
+    default:
+      type: trino
+      method: none
+      user: '{{ env_var("TRINO_USER", "admin") }}'
+      host: trino
+      port: 8080
+      catalog: iceberg
+      schema: elementary
+      threads: 2

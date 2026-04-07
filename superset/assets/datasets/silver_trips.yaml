@@ -1,0 +1,31 @@
+table_name: Order Trips (silver)
+main_dttm_col: trip_date
+schema: silver
+sql: |
+  SELECT 
+    *
+  FROM iceberg.silver.order_trips
+uuid: d1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
+extra: {}
+columns:
+  - column_name: trip_date
+    is_dttm: true
+    type: DATE
+  - column_name: order_id
+    is_active: true
+  - column_name: truck_id
+    is_active: true
+  - column_name: pickup_address
+    is_active: true
+  - column_name: delivery_address
+    is_active: true
+  - column_name: total_distance_km
+    is_active: true
+  - column_name: deadhead_distance_km
+    is_active: true
+  - column_name: loaded_distance_km
+    is_active: true
+  - column_name: deadhead_ratio
+    is_active: true
+version: 1.0.0

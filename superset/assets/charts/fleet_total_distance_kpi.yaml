@@ -1,0 +1,13 @@
+slice_name: "Total Fleet Distance Driven (KPI)"
+description: "Total cumulative distance driven by all active vehicles during the reporting period."
+viz_type: big_number_total
+params:
+  metric: total_distance
+  time_range: Last 30 days
+  granularity_sqla: metric_date
+  header_font_size: 0.4
+  subheader_font_size: 0.125
+  y_axis_format: "SMART_NUMBER"
+uuid: 51e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: b1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

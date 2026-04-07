@@ -1,0 +1,184 @@
+{
+  "writerVersion" : "451",
+  "owner" : "admin",
+  "tableType" : "MANAGED_TABLE",
+  "dataColumns" : [ {
+    "name" : "order_id",
+    "type" : "int",
+    "properties" : { }
+  }, {
+    "name" : "truck_id",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "pickup_address",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "delivery_address",
+    "type" : "string",
+    "properties" : { }
+  }, {
+    "name" : "dispatched_at",
+    "type" : "timestamp",
+    "properties" : { }
+  }, {
+    "name" : "collected_at",
+    "type" : "timestamp",
+    "properties" : { }
+  }, {
+    "name" : "delivered_at",
+    "type" : "timestamp",
+    "properties" : { }
+  }, {
+    "name" : "deadhead_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "loaded_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "total_distance_km",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "deadhead_duration_min",
+    "type" : "decimal(22,1)",
+    "properties" : { }
+  }, {
+    "name" : "loaded_duration_min",
+    "type" : "decimal(22,1)",
+    "properties" : { }
+  }, {
+    "name" : "total_duration_min",
+    "type" : "decimal(22,1)",
+    "properties" : { }
+  }, {
+    "name" : "deadhead_ratio",
+    "type" : "double",
+    "properties" : { }
+  }, {
+    "name" : "trip_date",
+    "type" : "date",
+    "properties" : { }
+  } ],
+  "partitionColumns" : [ ],
+  "parameters" : {
+    "trino_version" : "451",
+    "trino_query_id" : "20260326_184442_00060_u247s",
+    "transactional" : "false",
+    "auto.purge" : "false",
+    "numFiles" : "1",
+    "numRows" : "1219",
+    "rawDataSize" : "215199",
+    "totalSize" : "42146",
+    "STATS_GENERATED_VIA_STATS_TASK" : "workaround for potential lack of HIVE-12730"
+  },
+  "storageFormat" : "PARQUET",
+  "serdeParameters" : { },
+  "columnStatistics" : {
+    "truck_id" : {
+      "maxValueSizeInBytes" : 7,
+      "averageColumnLength" : 7.0,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 5
+    },
+    "delivery_address" : {
+      "maxValueSizeInBytes" : 23,
+      "averageColumnLength" : 15.419196062346185,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 6
+    },
+    "deadhead_duration_min" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "dispatched_at" : {
+      "nullsCount" : 0,
+      "distinctValuesCount" : 898
+    },
+    "deadhead_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 0.12,
+        "max" : 11.797
+      },
+      "nullsCount" : 5,
+      "distinctValuesCount" : 1165
+    },
+    "pickup_address" : {
+      "maxValueSizeInBytes" : 23,
+      "averageColumnLength" : 15.118129614438065,
+      "nullsCount" : 0,
+      "distinctValuesCount" : 6
+    },
+    "loaded_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 0.405,
+        "max" : 11.766
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1134
+    },
+    "collected_at" : {
+      "nullsCount" : 0,
+      "distinctValuesCount" : 884
+    },
+    "deadhead_ratio" : {
+      "doubleStatistics" : {
+        "min" : 0.0107,
+        "max" : 0.9464
+      },
+      "nullsCount" : 5,
+      "distinctValuesCount" : 1111
+    },
+    "total_duration_min" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "loaded_duration_min" : {
+      "decimalStatistics" : {
+        "min" : 0.0,
+        "max" : 0.0
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "trip_date" : {
+      "dateStatistics" : {
+        "min" : "1970-01-21",
+        "max" : "1970-01-21"
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1
+    },
+    "delivered_at" : {
+      "nullsCount" : 0,
+      "distinctValuesCount" : 881
+    },
+    "order_id" : {
+      "integerStatistics" : {
+        "min" : 1,
+        "max" : 1219
+      },
+      "nullsCount" : 0,
+      "distinctValuesCount" : 1214
+    },
+    "total_distance_km" : {
+      "doubleStatistics" : {
+        "min" : 1.828,
+        "max" : 22.938
+      },
+      "nullsCount" : 5,
+      "distinctValuesCount" : 1206
+    }
+  }
+}

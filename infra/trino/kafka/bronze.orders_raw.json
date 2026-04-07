@@ -1,0 +1,15 @@
+{
+    "tableName": "orders_raw",
+    "schemaName": "bronze",
+    "topicName": "cdc.public.orders",
+    "message": {
+        "dataFormat": "json",
+        "fields": [
+            { "name": "op", "mapping": "op", "type": "VARCHAR" },
+            { "name": "ts_ms", "mapping": "ts_ms", "type": "BIGINT" },
+            { "name": "before", "mapping": "before", "type": "VARCHAR" },
+            { "name": "after", "mapping": "after", "type": "VARCHAR" }
+
+        ]
+    }
+}

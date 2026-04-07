@@ -1,0 +1,28 @@
+.env
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+localstack_data/
+
+.worktrees/
+.venv/
+docs/
+implementations/
+*_data/
+
+# dbt artifacts
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

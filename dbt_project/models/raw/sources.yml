@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: kafka_source
+    description: >
+      LIVE Kafka topics exposed via the Trino Kafka Connector.
+      These are TRANSITION sources used only by the `raw/` models 
+      to persist data into the Iceberg Lakehouse.
+    database: kafka
+    schema: bronze
+    loaded_at_field: ts_ms
+
+    tables:
+      - name: orders_raw
+        description: CDC events for orders.
+      - name: trucks_raw
+        description: CDC events for trucks.
+      - name: truck_telemetry_raw
+        description: High-frequency GPS telemetry stream.

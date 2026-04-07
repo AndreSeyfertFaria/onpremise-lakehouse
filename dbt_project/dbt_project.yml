@@ -1,0 +1,52 @@
+name: 'logistics_lakehouse'
+version: '1.0.0'
+config-version: 2
+ 
+flags:
+  require_explicit_package_overrides_for_builtin_materializations: false
+profile: 'local_lakehouse'
+
+
+vars:
+  dbt_utils_dispatch_list: ['logistics_lakehouse', 'dbt_utils']
+  elementary_disable_dbt_artifacts_autoupload: false
+  elementary_disable_dbt_invocation_autoupload: false
+  elementary_store_failures: true
+
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+tests:
+  logistics_lakehouse:
+    +schema: test_failures
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  logistics_lakehouse:
+    raw:
+      +tags: ["raw"]
+      +schema: bronze
+    staging:
+      +tags: ["staging"]
+      +schema: bronze
+      +materialized: incremental
+    silver:
+      +tags: ["silver"]
+      +schema: silver
+      +materialized: table
+      +file_format: parquet
+      +store_failures: true
+    gold:
+      +tags: ["gold"]
+      +schema: gold
+      +materialized: table
+      +file_format: parquet
+      +store_failures: true
+  elementary:
+    +schema: elementary

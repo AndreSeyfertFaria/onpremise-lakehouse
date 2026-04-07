@@ -1,0 +1,33 @@
+version: "3.8"
+
+# --- Architectural Note ---
+# Superset is the analytical layer and is deliberately decoupled from the operational 
+# infrastructure. The Streamlit dashboard serves the real-time operational system, 
+# while Superset serves the analytical gold layer. They have different restart cadences, 
+# different resource needs, and different audiences. Keeping them in separate compose 
+# files makes each independently startable and explainable — which is also 
+# portfolio-relevant as an architectural decision.
+# --------------------------
+
+services:
+  superset:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: superset_analytics
+    ports:
+      - "8088:8088"
+    env_file: .env
+    volumes:
+      - superset_home:/app/superset_home
+      - ./assets:/app/superset_home/assets
+    networks:
+      - infra_lakehouse_net
+
+volumes:
+  superset_home:
+
+networks:
+  infra_lakehouse_net:
+    external: true
+    name: infra_lakehouse_net

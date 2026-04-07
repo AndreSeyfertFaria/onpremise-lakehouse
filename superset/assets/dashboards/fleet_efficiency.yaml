@@ -1,0 +1,112 @@
+dashboard_title: 'Executive Overview: Fleet & Efficiency'
+description: Analysis of vehicle utilization, distance driven, and empty-running (deadhead)
+  inefficiencies.
+metadata:
+  cross_filters_enabled: true
+  filter_bar_orientation: HORIZONTAL
+  native_filter_configuration:
+  - id: NATIVE_FILTER-FILTER_DATE_RANGE
+    controlValues:
+      enableEmptyFilter: false
+    name: Reporting Period
+    filterType: filter_time
+    targets:
+    - {}
+    defaultDataMask:
+      extraFormData: {}
+      filterState: {}
+      ownState: {}
+    cascadeParentIds: []
+    scope:
+      excluded: []
+      rootPath:
+      - ROOT_ID
+    type: NATIVE_FILTER
+    description: Controls the time range for fleet performance analysis.
+position:
+  CHART_DEADHEAD_BAR:
+    id: CHART_DEADHEAD_BAR
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 61e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 12
+    parents:
+    - ROW_DETAILS
+    type: CHART
+  CHART_DEADHEAD_TREND:
+    id: CHART_DEADHEAD_TREND
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 81e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 12
+    parents:
+    - ROW_TRENDS
+    type: CHART
+  CHART_KPI_DISTANCE:
+    id: CHART_KPI_DISTANCE
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 51e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 3
+    parents:
+    - ROW_KPI
+    type: CHART
+  CHART_UTILIZATION_TREND:
+    id: CHART_UTILIZATION_TREND
+    meta:
+      chartId: 0
+      height: 50
+      uuid: 41e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+      width: 9
+    parents:
+    - ROW_KPI
+    type: CHART
+  DASHBOARD_VERSION_KEY: v2
+  GRID_ID:
+    children:
+    - ROW_KPI
+    - ROW_TRENDS
+    - ROW_DETAILS
+    id: GRID_ID
+    parents:
+    - ROOT_ID
+    type: GRID
+  ROOT_ID:
+    children:
+    - GRID_ID
+    id: ROOT_ID
+    type: ROOT
+  ROW_DETAILS:
+    children:
+    - CHART_DEADHEAD_BAR
+    id: ROW_DETAILS
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+  ROW_KPI:
+    children:
+    - CHART_KPI_DISTANCE
+    - CHART_UTILIZATION_TREND
+    id: ROW_KPI
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+  ROW_TRENDS:
+    children:
+    - CHART_DEADHEAD_TREND
+    id: ROW_TRENDS
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - GRID_ID
+    type: ROW
+published: true
+uuid: f1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e11
+version: 1.0.0

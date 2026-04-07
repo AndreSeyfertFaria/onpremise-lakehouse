@@ -1,0 +1,19 @@
+slice_name: "OTD Rate by Region"
+description: "Cross-region comparison of delivery performance. Identifying top-performing districts vs. regions requiring operational focus."
+viz_type: dist_bar
+params:
+  metrics:
+    - avg_otd_rate
+  groupby:
+    - district
+  time_range: Last 30 days
+  granularity_sqla: trip_date
+  y_axis_format: ",.1%"
+  show_values: true
+  x_axis_label: "Region"
+  y_axis_label: "OTD Percentage"
+  order_bars: true
+  color_scheme: "supersetColors"
+uuid: 01e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+dataset_uuid: a1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
+version: 1.0.0

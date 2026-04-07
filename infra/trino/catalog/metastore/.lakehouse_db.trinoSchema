@@ -1,0 +1,9 @@
+{
+  "writerVersion" : "451",
+  "location" : "s3://meu-projeto-bronze/",
+  "ownerName" : "admin",
+  "ownerType" : "USER",
+  "parameters" : {
+    "trino_query_id" : "20260324_143159_00000_ix4dh"
+  }
+}
