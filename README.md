@@ -65,22 +65,60 @@ The Gold analytical layer powers zero-touch automated dashboards in Apache Super
 
 ## Execution Guide
 
-*Details on how to run this project locally will be added here.*
+### 1. Environment Variables
+Before running any services, you must create a `.env` file in each of the main component directories. Example files (`.env.example`) have been provided for you. 
 
-1. **Start the Source System & Streaming Stack:**
-   ```bash
-   # Commands to start Postgres, Kafka, and Debezium
-   ```
-2. **Start the Lakehouse Infrastructure:**
-   ```bash
-   # Commands to start LocalStack, Trino, and Airflow
-   ```
-3. **Initialize Analytics:**
-   ```bash
-   # Commands to start and initialize Superset
-   ```
-4. **Trigger the Pipelines:**
-   - Access the Airflow UI.
-   - Trigger the `lakehouse_ingestion_raw` DAG.
-   - Trigger the `lakehouse_transformation_analytics` DAG.
-   ```
+Run the following commands to copy the examples into active `.env` files:
+
+**Linux/macOS:**
+```bash
+cp source_system/.env.example source_system/.env
+cp streaming/.env.example streaming/.env
+cp infra/.env.example infra/.env
+cp superset/.env.example superset/.env
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item source_system\.env.example source_system\.env
+Copy-Item streaming\.env.example streaming\.env
+Copy-Item infra\.env.example infra\.env
+Copy-Item superset\.env.example superset\.env
+```
+*(Note: You can open these `.env` files and modify the default passwords and keys if desired.)*
+
+### 2. Start the Logistics Operations Command (Source System)
+Start the PostgreSQL database and the Python simulation engine that generates logistics data.
+```bash
+docker-compose -f source_system/docker-compose.yaml up -d --build
+```
+*(The Streamlit operational dashboard will be available at `http://localhost:8501`)*
+
+### 3. Start the Streaming Stack
+Start the Kafka broker, Kafka Connect, and Debezium.
+```bash
+docker-compose -f streaming/docker-compose.yaml up -d
+```
+Wait a few seconds for Kafka Connect to be ready, then register the CDC and Sink connectors:
+- **Linux/macOS:** `./streaming/register_connectors.sh`
+- **Windows:** `.\streaming\register_connectors.ps1`
+
+### 4. Start the Lakehouse Infrastructure
+Start the data lakehouse components (MinIO/LocalStack, Trino, Postgres Catalog, Airflow, and Elementary). The `lakehouse-setup` meta-controller will automatically initialize the S3 buckets and Trino schemas.
+```bash
+docker-compose -f infra/docker-compose.yaml up -d --build
+```
+*(The Trino UI will be available at `http://localhost:8080`)*
+
+### 5. Trigger the dbt Pipelines
+Once Airflow is healthy, access the Airflow UI at `http://localhost:8081` (default login: `admin`/`admin` from `infra/.env`).
+1. Trigger the `lakehouse_ingestion_raw` DAG to pull CDC data from Kafka into the Iceberg Raw layer.
+2. Trigger the `lakehouse_transformation_analytics` DAG to transform the Raw data into Silver and Gold layers.
+*(The Elementary UI for data quality will be available at `http://localhost:8082`)*
+
+### 6. Start the Analytics Layer (Superset)
+Start Apache Superset to visualize the Gold layer metrics. The container will automatically install the Trino driver, initialize the database, and import the zero-touch dashboards.
+```bash
+docker-compose -f superset/docker-compose.yml up -d --build
+```
+Access the Superset UI at `http://localhost:8088` (default login: `admin`/`admin_change_me` from `superset/.env`). Navigate to **Dashboards** to view the final analytics.
