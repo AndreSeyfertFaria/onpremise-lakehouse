@@ -7,7 +7,7 @@ localstack_data/
 
 .worktrees/
 .venv/
-docs/*
+docs/*/
 implementations/
 *_data/
 
