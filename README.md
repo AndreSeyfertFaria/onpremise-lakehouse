@@ -26,6 +26,19 @@ The platform is divided into distinct operational and analytical layers:
 5. **Orchestration & Observability:** **Apache Airflow** (via Astronomer Cosmos) orchestrates the dbt models, while **Elementary Data** monitors data quality and lineage.
 6. **Analytics & Visualization:** **Apache Superset** serves the analytical Gold layer, while **Streamlit** provides a real-time operational view.
 
+### 7. Startup Readiness & Wait Times (Important)
+Because this platform initializes many complex components locally, some services require a few minutes to be fully ready after the `docker-compose` command finishes:
+
+| Service | Ready Time | How to Verify |
+|---|---|---|
+| **LocalStack/S3** | ~30 seconds | `docker logs localstack` (look for "Ready") |
+| **Kafka Connect** | ~60 seconds | `docker logs kafka_connect` (look for "Finished starting connectors") |
+| **Airflow UI** | ~2-3 minutes | Access `http://localhost:8081` (Wait for DAGs to appear) |
+| **Elementary UI** | ~3-5 minutes | Access `http://localhost:8082` (Wait for "Report generated successfully" in `docker logs elementary_ui`) |
+| **Superset UI** | ~2 minutes | Access `http://localhost:8088` (Wait for DB initialization) |
+
+> **Pro Tip:** Always wait at least 1 minute after starting the **Streaming Stack** before running the `register_connectors` scripts.
+
 ## Data Engineering Highlights
 
 This project addresses several advanced data engineering challenges:

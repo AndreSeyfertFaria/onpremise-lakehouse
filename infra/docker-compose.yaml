@@ -9,7 +9,7 @@ services:
     environment:
       - SERVICES=s3
       - DEBUG=1
-      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?Error: LOCALSTACK_AUTH_TOKEN is required}
+      - "LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:?Error: LOCALSTACK_AUTH_TOKEN is required}"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
       interval: 10s
@@ -58,8 +58,8 @@ services:
       - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?Error: AWS_SECRET_ACCESS_KEY is required}"
       - "AWS_REGION=${AWS_REGION:?Error: AWS_REGION is required}"
       - "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:?Error: AWS_DEFAULT_REGION is required}"
-
-
+      - "ICEBERG_CATALOG_USER=${ICEBERG_CATALOG_USER:?Error: ICEBERG_CATALOG_USER is required}"
+      - "ICEBERG_CATALOG_PASSWORD=${ICEBERG_CATALOG_PASSWORD:?Error: ICEBERG_CATALOG_PASSWORD is required}"
     volumes:
       - ./trino/catalog:/etc/trino/catalog
       - ./trino/kafka:/etc/trino/kafka:ro
@@ -192,15 +192,13 @@ services:
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
-
-      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
-      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - "AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}"
+      - "AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}"
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - _AIRFLOW_DB_UPGRADE=True
       - _AIRFLOW_WWW_USER_CREATE=True
       - "_AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_ADMIN_USER:?Error: AIRFLOW_ADMIN_USER is required}"
       - "_AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_ADMIN_PASSWORD:?Error: AIRFLOW_ADMIN_PASSWORD is required}"
-
       - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
       - DBT_LOG_PATH=/tmp
       - DBT_TARGET_PATH=/tmp/dbt_target
@@ -229,9 +227,8 @@ services:
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
-
-      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
-      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - "AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}"
+      - "AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}"
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
       - DBT_LOG_PATH=/tmp
@@ -270,9 +267,8 @@ services:
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-postgres/${AIRFLOW_DB_NAME}
-
-      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}
-      - AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}
+      - "AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY:?Error: AIRFLOW__WEBSERVER__SECRET_KEY is required}"
+      - "AIRFLOW_CONN_TRINO_DBT=${AIRFLOW_CONN_TRINO_DBT:?Error: AIRFLOW_CONN_TRINO_DBT is required}"
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - DBT_PROJECT_PATH=${DBT_PROJECT_PATH:-/opt/airflow/dbt}
       - DBT_LOG_PATH=/tmp
@@ -310,14 +306,18 @@ services:
       - infra_signals:/signals
       - ../dbt_project:/opt/airflow/dbt
     command: >
-      bash -c "while true; do 
-        if [ -f /signals/run_elementary ]; then 
-          rm -f /signals/run_elementary; 
-          echo '[Self-Healing] Running elementary sync...';
-          cd /opt/airflow/dbt && /opt/airflow/dbt_venv/bin/dbt run --select elementary && /opt/airflow/dbt_venv/bin/dbt run-operation elementary.on_run_end; 
-        fi; 
-        sleep 5; 
-      done"
+      bash -c "
+        echo '[Startup] Running initial elementary sync baseline...';
+        cd /opt/airflow/dbt && /opt/airflow/dbt_venv/bin/dbt run --select elementary && /opt/airflow/dbt_venv/bin/dbt run-operation elementary.on_run_end;
+        
+        while true; do 
+          if [ -f /signals/run_elementary ]; then 
+            rm -f /signals/run_elementary; 
+            echo '[Self-Healing] Running triggered elementary sync...';
+            cd /opt/airflow/dbt && /opt/airflow/dbt_venv/bin/dbt run --select elementary && /opt/airflow/dbt_venv/bin/dbt run-operation elementary.on_run_end; 
+          fi; 
+          sleep 5; 
+        done"
     networks:
       - lakehouse_net
 
@@ -339,6 +339,11 @@ services:
       - ./elementary/macros/trino_fix.sql:/usr/local/lib/python3.10/site-packages/elementary/monitor/dbt_project/macros/trino_fix.sql:ro
     networks:
       - lakehouse_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 8G
 
 networks:
   lakehouse_net:

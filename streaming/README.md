@@ -85,6 +85,14 @@ Expected output:
 
 ---
 
+## Wait Times (Critical)
+
+Kafka Connect takes about **60 seconds** to fully initialize its internal REST API. **Do not run the registration scripts immediately** after `docker-compose up`.
+
+If you see connection errors from the script, wait another 30 seconds and retry.
+
+---
+
 ## Validation
 
 ### 1. Check connector status

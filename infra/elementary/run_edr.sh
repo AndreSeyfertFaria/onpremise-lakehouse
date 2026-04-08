@@ -10,7 +10,7 @@ mkdir -p /app/report
 while true; do
   echo "Generating Elementary report..."
   # The dbt project and profiles are mounted at /dbt
-  edr report --project-dir /dbt --profiles-dir /dbt --file-path /app/report/index.html
+  edr report --project-dir /dbt --profiles-dir /dbt --file-path /app/report/index.html --days-back 1 --exclude-elementary-models
 
   if [ $? -eq 0 ]; then
       echo "Report generated successfully."

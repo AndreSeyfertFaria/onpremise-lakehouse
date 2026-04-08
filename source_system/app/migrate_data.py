@@ -21,8 +21,18 @@ def main():
     cur.execute("SELECT MIN(timestamp), MAX(timestamp) FROM truck_telemetry_old")
     min_ts, max_ts = cur.fetchone()
 
+    # Also check if there's data in the default partition that needs a specific partition
+    cur.execute("SELECT MIN(timestamp), MAX(timestamp) FROM truck_telemetry_default")
+    def_min, def_max = cur.fetchone()
+
+    if min_ts is None: min_ts = def_min
+    elif def_min is not None: min_ts = min(min_ts, def_min)
+
+    if max_ts is None: max_ts = def_max
+    elif def_max is not None: max_ts = max(max_ts, def_max)
+
     if min_ts is None or max_ts is None:
-        print("No data found in truck_telemetry_old. Creating a default partition for today and exiting.")
+        print("No data found. Creating a default partition for today and exiting.")
         today = date.today()
         min_ts = today
         max_ts = today
@@ -32,6 +42,15 @@ def main():
         max_ts = max_ts.date()
 
     print(f"Data range found: from {min_ts} to {max_ts}")
+
+    # Temporary table to hold data from default partition if it exists
+    cur.execute("CREATE TEMP TABLE telemetry_temp (LIKE truck_telemetry INCLUDING ALL) ON COMMIT PRESERVE ROWS")
+    cur.execute("ALTER TABLE telemetry_temp DROP COLUMN timestamp") # Partition key must be handled carefully
+    cur.execute("ALTER TABLE telemetry_temp ADD COLUMN timestamp TIMESTAMP")
+
+    print("Checking for data in default partition...")
+    cur.execute("INSERT INTO telemetry_temp SELECT * FROM truck_telemetry_default")
+    cur.execute("TRUNCATE truck_telemetry_default")
 
     # Calculate end date (max_ts + 7 days)
     end_date = max_ts + timedelta(days=7)
@@ -57,16 +76,25 @@ def main():
         
         current_date = next_date
 
-    # 4. Insert data from old table to new partitioned table
+    # 4. Insert data from old table AND temp table back to new partitioned table
     print("Moving data from truck_telemetry_old to truck_telemetry...")
     
-    insert_query = """
+    insert_old_query = """
         INSERT INTO truck_telemetry (id, truck_id, latitude, longitude, speed_kmh, timestamp)
         SELECT id, truck_id, latitude, longitude, speed_kmh, timestamp 
         FROM truck_telemetry_old
         ON CONFLICT (id, timestamp) DO NOTHING;
     """
-    cur.execute(insert_query)
+    cur.execute(insert_old_query)
+
+    print("Moving data from temp table (original default partition) to truck_telemetry...")
+    insert_temp_query = """
+        INSERT INTO truck_telemetry (id, truck_id, latitude, longitude, speed_kmh, timestamp)
+        SELECT id, truck_id, latitude, longitude, speed_kmh, timestamp 
+        FROM telemetry_temp
+        ON CONFLICT (id, timestamp) DO NOTHING;
+    """
+    cur.execute(insert_temp_query)
     
     print("Data migration completed successfully.")
     
