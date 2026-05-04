@@ -27,7 +27,7 @@ with raw_data as (
     from {{ ref('orders_raw') }}
     
     {% if is_incremental() %}
-    where ts_ms > (select max(ts_ms) from {{ this }})
+    where ts_ms > (select coalesce(max(ts_ms), -1) from {{ this }})
     {% endif %}
 )
 
@@ -45,4 +45,3 @@ select
     is_deleted
 from raw_data
 where rn = 1
-

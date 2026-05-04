@@ -7,8 +7,16 @@ set -euo pipefail
 
 CONNECT_URL="${CONNECT_URL:-http://localhost:8083}"
 CONNECTORS_DIR="$(dirname "$0")/connectors"
+STREAMING_ENV="$(dirname "$0")/.env"
 MAX_WAIT=120   # seconds to wait for Kafka Connect to become healthy
 INTERVAL=5
+
+if [[ -f "${STREAMING_ENV}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${STREAMING_ENV}"
+  set +a
+fi
 
 # Wait for Kafka Connect
 echo "[WAIT] Waiting for Kafka Connect to be ready at ${CONNECT_URL} ..."
@@ -29,7 +37,35 @@ echo ""
 register_connector() {
   local file="$1"
   local name
-  name=$(python3 -c "import json,sys; d=json.load(open('$file')); print(d['name'])")
+  local rendered
+  local config
+  rendered=$(python3 - "$file" <<'PY'
+import json
+import os
+import sys
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as fh:
+    raw = fh.read()
+
+required = {
+    "__POSTGRES_USER__": os.getenv("POSTGRES_USER"),
+    "__POSTGRES_PASSWORD__": os.getenv("POSTGRES_PASSWORD"),
+    "__POSTGRES_DB__": os.getenv("POSTGRES_DB"),
+}
+
+for token, value in required.items():
+    if token in raw:
+        if not value:
+            raise SystemExit(f"Missing required environment value for {token}")
+        raw = raw.replace(token, value)
+
+doc = json.loads(raw)
+print(json.dumps({"name": doc["name"], "config": doc["config"]}))
+PY
+)
+  name=$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d['name'])" "$rendered")
+  config=$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(json.dumps(d['config']))" "$rendered")
 
   echo "[REGISTER] ${name}"
 
@@ -37,7 +73,7 @@ register_connector() {
   http_code=$(curl -s -o /tmp/connect_response.json -w "%{http_code}" \
     -X PUT \
     -H "Content-Type: application/json" \
-    --data "@${file}" \
+    --data "${config}" \
     "${CONNECT_URL}/connectors/${name}/config")
 
   if [[ "$http_code" == "200" || "$http_code" == "201" ]]; then

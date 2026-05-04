@@ -5,9 +5,9 @@
 
     "database.hostname": "logistics_db",
     "database.port": "5432",
-    "database.user": "admin",
-    "database.password": "admin",
-    "database.dbname": "logistics_db",
+    "database.user": "__POSTGRES_USER__",
+    "database.password": "__POSTGRES_PASSWORD__",
+    "database.dbname": "__POSTGRES_DB__",
     "database.server.name": "cdc",
 
     "plugin.name": "pgoutput",
@@ -30,6 +30,6 @@
     "time.precision.mode": "connect",
     "tombstones.on.delete": "false",
 
-    "snapshot.mode": "initial"
+    "snapshot.mode": "always"
   }
 }

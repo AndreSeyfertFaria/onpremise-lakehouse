@@ -3,44 +3,8 @@ main_dttm_col: trip_date
 description: "Aggregated performance metrics for on-time delivery across different districts and time periods. Includes counts for late, on-time, and fast deliveries."
 schema: gold
 sql: |
-  SELECT 
-    district,
-    trip_date,
-    otd_rate as otd_rate,
-    otd_rate_7d as otd_rate_7d,
-    total_orders,
-    'Fast' as delivery_tier,
-    fast_count as delivery_count
-  FROM iceberg.gold.otd
-  UNION ALL
-  SELECT 
-    district,
-    trip_date,
-    otd_rate as otd_rate,
-    otd_rate_7d as otd_rate_7d,
-    total_orders,
-    'On Time' as delivery_tier,
-    on_time_count as delivery_count
-  FROM iceberg.gold.otd
-  UNION ALL
-  SELECT 
-    district,
-    trip_date,
-    otd_rate as otd_rate,
-    otd_rate_7d as otd_rate_7d,
-    total_orders,
-    'Slightly Late' as delivery_tier,
-    slightly_late_count as delivery_count
-  FROM iceberg.gold.otd
-  UNION ALL
-  SELECT 
-    district,
-    trip_date,
-    otd_rate as otd_rate,
-    otd_rate_7d as otd_rate_7d,
-    total_orders,
-    'Late' as delivery_tier,
-    late_count as delivery_count
+  SELECT
+    *
   FROM iceberg.gold.otd
 uuid: a1e2d3c4-b5a6-4c7d-8e9f-0a1b2c3d4e5f
 database_uuid: 97f6c3a1-7b8c-4f81-a6e5-4f7f8d6e9000
@@ -53,10 +17,58 @@ columns:
   - column_name: district
     verbose_name: "Region / District"
     is_active: true
-  - column_name: delivery_tier
-    verbose_name: "Delivery Classification"
-    description: "Classification of delivery speed (Fast, On Time, Slightly Late, Late)."
+  - column_name: total_orders
+    verbose_name: "Total Orders"
     is_active: true
+    type: BIGINT
+  - column_name: on_time_orders
+    verbose_name: "On-Time Orders"
+    is_active: true
+    type: BIGINT
+  - column_name: late_orders
+    verbose_name: "Late Orders"
+    is_active: true
+    type: BIGINT
+  - column_name: otd_rate
+    verbose_name: "OTD Rate"
+    is_active: true
+    type: DECIMAL
+  - column_name: fast_count
+    verbose_name: "Fast Deliveries"
+    is_active: true
+    type: BIGINT
+  - column_name: on_time_count
+    verbose_name: "On-Time Deliveries"
+    is_active: true
+    type: BIGINT
+  - column_name: slightly_late_count
+    verbose_name: "Slightly Late Deliveries"
+    is_active: true
+    type: BIGINT
+  - column_name: late_count
+    verbose_name: "Late Deliveries"
+    is_active: true
+    type: BIGINT
+  - column_name: avg_duration_min
+    verbose_name: "Average Duration (min)"
+    is_active: true
+    type: DECIMAL
+  - column_name: min_duration_min
+    verbose_name: "Minimum Duration (min)"
+    is_active: true
+    type: DECIMAL
+  - column_name: max_duration_min
+    verbose_name: "Maximum Duration (min)"
+    is_active: true
+    type: DECIMAL
+  - column_name: p90_duration_min
+    verbose_name: "P90 Duration (min)"
+    is_active: true
+    type: REAL
+  - column_name: otd_rate_7d
+    verbose_name: "OTD Rate 7D"
+    is_active: true
+    type: DECIMAL
 metrics:
   - metric_name: avg_otd_rate
     verbose_name: "OTD Rate (%)"
@@ -66,12 +78,48 @@ metrics:
     verbose_name: "OTD Rate (7D Moving Avg)"
     description: "Rolling 7-day average of the On-Time Delivery rate."
     expression: AVG(otd_rate_7d)
-  - metric_name: delivery_count
-    verbose_name: "Order Count"
-    description: "Total number of orders within the specific delivery tier."
-    expression: SUM(delivery_count)
   - metric_name: total_orders
     verbose_name: "Total Volume"
     description: "Total volume of orders processed."
     expression: SUM(total_orders)
+  - metric_name: on_time_orders
+    verbose_name: "On-Time Orders"
+    description: "Total number of on-time orders."
+    expression: SUM(on_time_orders)
+  - metric_name: late_orders
+    verbose_name: "Late Orders"
+    description: "Total number of late orders."
+    expression: SUM(late_orders)
+  - metric_name: fast_count
+    verbose_name: "Fast Deliveries"
+    description: "Total number of deliveries classified as fast."
+    expression: SUM(fast_count)
+  - metric_name: on_time_count
+    verbose_name: "On-Time Deliveries"
+    description: "Total number of deliveries classified as on time."
+    expression: SUM(on_time_count)
+  - metric_name: slightly_late_count
+    verbose_name: "Slightly Late Deliveries"
+    description: "Total number of deliveries classified as slightly late."
+    expression: SUM(slightly_late_count)
+  - metric_name: late_count
+    verbose_name: "Late Deliveries"
+    description: "Total number of deliveries classified as late."
+    expression: SUM(late_count)
+  - metric_name: avg_duration_min
+    verbose_name: "Average Duration (min)"
+    description: "Average delivery duration in minutes."
+    expression: AVG(avg_duration_min)
+  - metric_name: min_duration_min
+    verbose_name: "Minimum Duration (min)"
+    description: "Minimum delivery duration in minutes."
+    expression: MIN(min_duration_min)
+  - metric_name: max_duration_min
+    verbose_name: "Maximum Duration (min)"
+    description: "Maximum delivery duration in minutes."
+    expression: MAX(max_duration_min)
+  - metric_name: p90_duration_min
+    verbose_name: "P90 Duration (min)"
+    description: "90th percentile delivery duration in minutes."
+    expression: AVG(p90_duration_min)
 version: 1.0.0

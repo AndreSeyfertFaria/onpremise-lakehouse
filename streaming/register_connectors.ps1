@@ -8,6 +8,15 @@ $CONNECT_URL = "http://localhost:8083"
 $CONNECTORS_DIR = Join-Path $PSScriptRoot "connectors"
 $MAX_WAIT = 120
 $INTERVAL = 5
+$STREAMING_ENV = Join-Path $PSScriptRoot ".env"
+
+if (Test-Path $STREAMING_ENV) {
+    Get-Content $STREAMING_ENV | ForEach-Object {
+        if ($_ -match '^\s*#' -or $_ -notmatch '=') { return }
+        $name, $value = $_ -split '=', 2
+        [Environment]::SetEnvironmentVariable($name.Trim(), $value.Trim())
+    }
+}
 
 # Wait for Kafka Connect
 Write-Host "[WAIT] Waiting for Kafka Connect at $CONNECT_URL ..." -ForegroundColor Cyan
@@ -39,7 +48,24 @@ Write-Host ""
 function Register-Connector {
     param([string]$FilePath)
 
-    $fullJson = Get-Content $FilePath -Raw | ConvertFrom-Json
+    $rawJson = Get-Content $FilePath -Raw
+    $replacements = @{
+        "__POSTGRES_USER__" = $env:POSTGRES_USER
+        "__POSTGRES_PASSWORD__" = $env:POSTGRES_PASSWORD
+        "__POSTGRES_DB__" = $env:POSTGRES_DB
+    }
+
+    foreach ($key in $replacements.Keys) {
+        if ($rawJson.Contains($key)) {
+            if ([string]::IsNullOrWhiteSpace($replacements[$key])) {
+                Write-Host "[ERROR] Missing required environment value for $key" -ForegroundColor Red
+                exit 1
+            }
+            $rawJson = $rawJson.Replace($key, $replacements[$key])
+        }
+    }
+
+    $fullJson = $rawJson | ConvertFrom-Json
     $name = $fullJson.name
     $configBody = $fullJson.config | ConvertTo-Json -Depth 10
 

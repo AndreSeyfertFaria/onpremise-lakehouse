@@ -24,7 +24,7 @@ with source_data as (
     where op in ('c', 'r')
     
     {% if is_incremental() %}
-    and ts_ms > (select max(ts_ms) from {{ this }})
+    and ts_ms > (select coalesce(max(ts_ms), -1) from {{ this }})
     {% endif %}
 ),
 

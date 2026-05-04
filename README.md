@@ -1,89 +1,210 @@
-# Logistics Data Platform
+# Logistics Lakehouse Platform with CDC, Iceberg, dbt, Airflow, and Superset
 
 ![Tech Stack Badges](https://img.shields.io/badge/Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white) ![Trino](https://img.shields.io/badge/Trino-DD00A1?style=for-the-badge&logo=trino&logoColor=white) ![Apache Iceberg](https://img.shields.io/badge/Apache%20Iceberg-00B4EB?style=for-the-badge&logo=apache&logoColor=white) ![dbt](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white) ![Airflow](https://img.shields.io/badge/Airflow-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white) ![Superset](https://img.shields.io/badge/Superset-00A699?style=for-the-badge&logo=apachesuperset&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-*[PLACEHOLDER: High-quality GIF/Image of the final Superset Dashboard or Streamlit UI]*
+![Logistics Operations Command](assets/project - LCC.gif)
 
-## Overview & Business Value
+Local operating view of the simulator that drives the CDC, telemetry, and analytics workload.
 
-This project implements a production-grade, local **Data Lakehouse** built on an Iceberg-native architecture. 
+## Executive Summary
 
-Its primary purpose is to simulate, capture, and analyze real-time logistics operations and fleet telemetry. The core of this data generation is the **Logistics Operations Command**, a custom simulation engine that generates realistic logistics events, including order dispatching and high-frequency fleet movement.
+This project is a production-style local data platform for logistics analytics. It simulates a delivery operation, captures operational changes and telemetry through CDC, persists them into an Iceberg lakehouse, transforms them with dbt, orchestrates them with Airflow, monitors them with Elementary, and serves them through Superset.
 
-## Architecture & Data Flow
+It is designed to demonstrate architecture and delivery skills that matter in data engineering interviews and technical evaluations:
+- building a CDC-driven lakehouse instead of a static demo pipeline,
+- handling historical retention and replay in a local environment,
+- orchestrating Bronze, Silver, and Gold transformations with observable quality controls,
+- publishing analytical assets that connect model design to business-facing KPIs.
 
-*[PLACEHOLDER: Architecture Diagram (Mermaid or Image)]*
+## Key Skills Demonstrated
 
-The platform is divided into distinct operational and analytical layers:
+- CDC ingestion design with Debezium, Kafka, Trino, and dbt
+- Iceberg-based medallion modeling across Raw, Staging, Silver, and Gold
+- Recovery-oriented platform design for ephemeral local infrastructure
+- Data quality and lineage with dbt tests and Elementary Data
+- Airflow orchestration using Astronomer Cosmos task groups
+- BI delivery with curated Superset datasets, charts, and dashboards
 
-1. **Source System (Operational):** PostgreSQL acts as the primary database for the Logistics Operations Command.
-2. **Streaming Stack:** Debezium Change Data Capture (CDC) captures row-level changes and pushes them to **Apache Kafka**, which acts as the high-speed message buffer.
-3. **Lakehouse (Iceberg-Native):** 
-   - **Trino:** Distributed SQL query engine.
-   - **MinIO/LocalStack (S3):** Object storage for Iceberg Parquet files and metadata.
-   - **PostgreSQL:** Serves as the Iceberg JDBC Catalog for ACID transactions.
-4. **Transformation:** **dbt** (data build tool) handles Pull-based ingestion from Kafka into the Raw layer, and subsequent transformations into Staging, Silver, and Gold layers.
-5. **Orchestration & Observability:** **Apache Airflow** (via Astronomer Cosmos) orchestrates the dbt models, while **Elementary Data** monitors data quality and lineage.
-6. **Analytics & Visualization:** **Apache Superset** serves the analytical Gold layer, while **Streamlit** provides a real-time operational view.
+## Architecture and Design Choices
 
-### 7. Startup Readiness & Wait Times (Important)
-Because this platform initializes many complex components locally, some services require a few minutes to be fully ready after the `docker-compose` command finishes:
+```mermaid
+flowchart LR
+    subgraph OP["Operational Source"]
+        FSM["Logistics Operations Command"]
+        PG["PostgreSQL Source"]
+        FSM --> PG
+    end
 
-| Service | Ready Time | How to Verify |
-|---|---|---|
-| **LocalStack/S3** | ~30 seconds | `docker logs localstack` (look for "Ready") |
-| **Kafka Connect** | ~60 seconds | `docker logs kafka_connect` (look for "Finished starting connectors") |
-| **Airflow UI** | ~2-3 minutes | Access `http://localhost:8081` (Wait for DAGs to appear) |
-| **Elementary UI** | ~3-5 minutes | Access `http://localhost:8082` (Wait for "Report generated successfully" in `docker logs elementary_ui`) |
-| **Superset UI** | ~2 minutes | Access `http://localhost:8088` (Wait for DB initialization) |
+    subgraph CDC["Streaming / CDC"]
+        DBZ["Debezium"]
+        KFK["Apache Kafka"]
+        PG --> DBZ
+        DBZ --> KFK
+    end
 
-> **Pro Tip:** Always wait at least 1 minute after starting the **Streaming Stack** before running the `register_connectors` scripts.
+    subgraph LH["Lakehouse Platform"]
+        TR["Trino Kafka Connector"]
+        DBT["dbt Core"]
+        RAW["Raw"]
+        STG["Staging"]
+        SLV["Silver"]
+        GLD["Gold"]
+
+        KFK -->|"Pull-based ingestion"| TR
+        TR --> DBT
+        DBT --> RAW --> STG --> SLV --> GLD
+    end
+
+    subgraph META["Storage & Catalog"]
+        S3["LocalStack S3 / Iceberg Files"]
+        CAT["Postgres JDBC Catalog"]
+    end
+
+    subgraph OPS["Orchestration & Quality"]
+        AF["Airflow"]
+        ELM["Elementary"]
+        AF --> DBT
+        DBT --> ELM
+    end
+
+    subgraph BI["Consumption"]
+        SUP["Apache Superset"]
+        GLD --> SUP
+    end
+
+    S3 -.-> RAW
+    S3 -.-> STG
+    S3 -.-> SLV
+    S3 -.-> GLD
+    CAT -.-> RAW
+    CAT -.-> STG
+    CAT -.-> SLV
+    CAT -.-> GLD
+```
+
+This platform uses a pull-based CDC architecture:
+1. The Logistics Operations Command writes operational events into PostgreSQL.
+2. Debezium captures row-level changes and publishes them into Kafka topics.
+3. Trino exposes those live Kafka topics as queryable sources.
+4. dbt pulls that stream into persistent Iceberg Raw tables, then promotes it through Staging, Silver, and Gold layers.
+5. Airflow orchestrates ingestion and analytics DAGs, while Elementary provides quality and lineage visibility.
+6. Superset consumes the Gold layer through imported analytical assets.
+
+The most important architectural decision is the pull-based landing step. Instead of pushing events directly from Kafka into the lake with a sink-based ingestion path, dbt persists the stream into Iceberg Raw tables. That makes the lakehouse more auditable, easier to replay, and less dependent on short-lived topic state.
 
 ## Data Engineering Highlights
 
-This project addresses several advanced data engineering challenges:
+### 1. Persistent Raw Retention over Live-Only Streaming
 
-### 1. Pull-Based CDC Ingestion
-Instead of using a Kafka Sink connector to push data directly into the data lake, this architecture uses a **Pull-based pattern**. The Trino Kafka Connector exposes live topics, and dbt pulls this data into a persistent Iceberg Raw layer. This bypasses transient Kafka topic retention limits and creates a permanent, auditable "Source of Truth."
+The Raw layer is treated as the durable landing zone for CDC data. Kafka remains the transport layer, but Iceberg becomes the analytical source of truth. This gives the platform:
+- historical retention beyond transient topic behavior,
+- repeatable downstream rebuilds,
+- cleaner debugging when Silver or Gold logic changes.
 
-### 2. Exactly-Once Processing
-Relying solely on timestamps for incremental ingestion can lead to data loss during high-frequency events. The Raw ingestion models track Kafka partition offsets (`_partition_id`, `_partition_offset`) to guarantee exactly-once, idempotent ingestion, even if timestamp collisions occur.
+### 2. Offset-Based Idempotent Raw Ingestion
 
-### 3. 100% Self-Healing Infrastructure
-Managing ephemeral local infrastructure (like LocalStack) alongside persistent database catalogs often leads to "Zombie" metadata (`ICEBERG_MISSING_METADATA` errors) when the S3 state is lost but the catalog remains. This project features a custom meta-controller (`lakehouse-setup`) that:
-- Detects local environment resets.
-- Automatically purges orphaned metadata from the Postgres catalog.
-- Re-runs Terraform to recreate S3 buckets.
-- Uses Docker-in-Docker signaling to trigger dbt logical repairs and Elementary manifest syncs without manual intervention.
+The Raw ingestion models track Kafka partition offsets (`_partition_id`, `_partition_offset`) instead of relying only on timestamps. This makes the landing step idempotent and reduces the risk of missed or duplicated events when high-frequency messages share similar timestamps.
 
-### 4. Trino & Iceberg Adaptations
-The Trino Iceberg JDBC catalog does not natively support SQL Views. To integrate seamlessly with dbt and Elementary Data (which rely heavily on temporary views and tables), the project implements **Macro Shadowing**. Custom local overrides (`trino__create_table_as`, `trino__create_view_as`) force dbt to use persistent Iceberg tables for temporary artifacts, ensuring full compatibility without hacking package source code.
+### 3. Automated Recovery for Local Infrastructure Resets
 
-## The Logistics Operations Command (Simulation Engine)
+The local platform is designed to recover from common ephemeral-environment failures, especially when LocalStack state is reset while the Iceberg catalog still retains metadata. The `lakehouse-setup` recovery flow:
+- detects local environment resets,
+- removes orphaned Iceberg metadata from the JDBC catalog,
+- recreates buckets and schemas,
+- triggers dbt and Elementary repair flows after infrastructure recovery.
 
-To provide a realistic data source, the project includes a Python-based Finite State Machine (FSM). This engine simulates a high-fidelity delivery operation featuring:
-- **State Transitions:** Assets move through defined operational states (Idle, Collecting, En Route, Completed).
-- **Movement Physics:** Realistic GPS updates calculated using Haversine formulas and velocity-based displacements.
+### 4. Historical Recovery Guardrails
 
-*[PLACEHOLDER: Streamlit "Control Room" Dashboard Print]*
+The streaming layer is configured so historical data can be rebuilt after resets:
+- the Debezium source connector can republish a fresh source snapshot on restart,
+- Bronze staging models use null-safe incremental watermarks,
+- the lakehouse can be repopulated without manual row-by-row intervention when empty targets must be rebuilt.
 
-## Analytics & Dashboards
+### 5. Trino and Iceberg Compatibility Adaptation
 
-The Gold analytical layer powers zero-touch automated dashboards in Apache Superset, analyzing key metrics:
-- **On-Time Delivery (OTD):** Analyzing delivery performance tiers and district-level success rates.
-- **Fleet Utilization:** Tracking the ratio of "Deadhead" (empty) to "Loaded" kilometers.
-- **District Heatmap:** Visualizing corridor volume and average trip durations.
+The Trino Iceberg JDBC catalog does not natively behave the way dbt and Elementary expect for some temporary relation patterns. This project uses local macro overrides to keep dbt and observability workflows compatible without forking upstream packages.
 
-*[PLACEHOLDER: Prints/GIFs of the two Superset Dashboards]*
+## The Logistics Operations Command
 
-## Execution Guide
+The source workload is not static seed data. It is a Python simulation engine that generates realistic operational pressure on the platform:
+- order lifecycle state transitions,
+- high-frequency fleet telemetry,
+- dispatch, collection, and delivery timestamps,
+- district-to-district movement patterns.
 
-### 1. Environment Variables
-Before running any services, you must create a `.env` file in each of the main component directories. Example files (`.env.example`) have been provided for you. 
+This matters because it turns the lakehouse into a realistic systems exercise rather than a modeling-only project. The simulator creates the kinds of late-arriving updates, replay scenarios, and telemetry density that make CDC, staging, and KPI modeling meaningful.
 
-Run the following commands to copy the examples into active `.env` files:
+![Logistics Operations Command](assets/project - LCC.gif)
 
-**Linux/macOS:**
+## Analytics and Observability Evidence
+
+The Gold layer is built to answer concrete logistics questions:
+- **On-Time Delivery:** Which districts are meeting service targets, and how stable is delivery performance over time?
+- **Fleet Efficiency:** How intensively is each truck being used relative to its observed active window, and where is work concentrated?
+- **District Corridors:** Which origin-destination routes carry the most volume, longest durations, and weakest OTD performance?
+
+### Airflow DAG Assets
+
+#### Bronze Ingestion DAG
+
+![Airflow Bronze DAG](assets/dag_lakehouse_bronze.jpg)
+
+This DAG (`dag_lakehouse_bronze`) owns the ingestion boundary between Kafka and the lakehouse. It materializes Raw and Staging models for orders, trucks, and telemetry, then runs `elementary_sync` so metadata and observability artifacts stay aligned with each ingestion cycle.
+
+#### Analytics Transformation DAG
+
+![Airflow Analytics DAG](assets/dag_lakehouse_analytics.jpg)
+
+This DAG (`dag_lakehouse_analytics`) owns the serving layer. It executes the Silver and Gold transformations behind `order_trips`, `truck_activity`, `otd`, `district_heatmap`, and `fleet_utilization`, with validation steps that reinforce trust in the KPI layer exposed to BI consumers.
+
+### Superset Dashboard Assets
+
+![Superset Fleet Efficiency](assets/superset - fleet efficiency.jpg)
+
+This dashboard demonstrates the fleet-serving layer: utilization index trends, distance patterns, and empty-running behavior derived from the truck activity and fleet utilization models.
+
+![Superset Orders Delivery Performance](assets/superset - orders delivery performance.jpg)
+
+This dashboard demonstrates the delivery-performance layer: district-level OTD, trend analysis, delivery classification tiers, and corridor-level operational behavior from the Gold OTD and heatmap models.
+
+### Elementary Observability Assets
+
+#### Lineage View
+
+![Elementary Lineage](assets/elementary - lineage.jpg)
+
+This lineage view shows the dependency path from Raw ingestion through Staging and into the Gold analytical layer. It makes the medallion architecture explicit and supports impact analysis across the KPI stack.
+
+#### Data Quality Dashboard
+
+![Elementary Dashboard](assets/elementary - dashboard.jpg)
+
+This dashboard shows test execution coverage, monitored tables, freshness, and overall transformation health. It provides the operational quality layer behind the analytical outputs, not just the visualized metrics themselves.
+
+## Repository Map
+
+```text
+source_system/   Source simulator, Streamlit operational UI, PostgreSQL source stack
+streaming/       Kafka, Kafka Connect, Debezium connectors, connector registration scripts
+infra/           Airflow, Trino, LocalStack, Elementary, catalog, recovery services
+dbt_project/     Raw, Staging, Silver, and Gold transformation logic
+superset/        Imported datasets, charts, dashboards, and BI bootstrap assets
+implementations/ Technical context and architecture record
+```
+
+## Quick Execution Guide
+
+### Requirements
+
+- Docker and Docker Compose
+- Enough local resources to run PostgreSQL, Kafka, Trino, Airflow, Elementary, and Superset together
+- `.env` files created from the provided `.env.example` templates
+
+### 1. Prepare Environment Files
+
+Create local `.env` files from the examples:
+
+**Linux/macOS**
 ```bash
 cp source_system/.env.example source_system/.env
 cp streaming/.env.example streaming/.env
@@ -91,47 +212,70 @@ cp infra/.env.example infra/.env
 cp superset/.env.example superset/.env
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell)**
 ```powershell
 Copy-Item source_system\.env.example source_system\.env
 Copy-Item streaming\.env.example streaming\.env
 Copy-Item infra\.env.example infra\.env
 Copy-Item superset\.env.example superset\.env
 ```
-*(Note: You can open these `.env` files and modify the default passwords and keys if desired.)*
 
-### 2. Start the Logistics Operations Command (Source System)
-Start the PostgreSQL database and the Python simulation engine that generates logistics data.
+### 2. Start Services in This Order
+
+The startup order matters because Kafka Connect, Airflow, and Superset depend on other layers being ready.
+
+1. Start the source system:
 ```bash
 docker-compose -f source_system/docker-compose.yaml up -d --build
 ```
-*(The Streamlit operational dashboard will be available at `http://localhost:8501`)*
 
-### 3. Start the Streaming Stack
-Start the Kafka broker, Kafka Connect, and Debezium.
-```bash
-docker-compose -f streaming/docker-compose.yaml up -d
-```
-Wait a few seconds for Kafka Connect to be ready, then register the CDC and Sink connectors:
-- **Linux/macOS:** `./streaming/register_connectors.sh`
-- **Windows:** `.\streaming\register_connectors.ps1`
-
-### 4. Start the Lakehouse Infrastructure
-Start the data lakehouse components (MinIO/LocalStack, Trino, Postgres Catalog, Airflow, and Elementary). The `lakehouse-setup` meta-controller will automatically initialize the S3 buckets and Trino schemas.
+2. Start the lakehouse infrastructure:
 ```bash
 docker-compose -f infra/docker-compose.yaml up -d --build
 ```
-*(The Trino UI will be available at `http://localhost:8080`)*
 
-### 5. Trigger the dbt Pipelines
-Once Airflow is healthy, access the Airflow UI at `http://localhost:8081` (default login: `admin`/`admin` from `infra/.env`).
-1. Trigger the `lakehouse_ingestion_raw` DAG to pull CDC data from Kafka into the Iceberg Raw layer.
-2. Trigger the `lakehouse_transformation_analytics` DAG to transform the Raw data into Silver and Gold layers.
-*(The Elementary UI for data quality will be available at `http://localhost:8082`)*
+3. Start the streaming stack:
+```bash
+docker-compose -f streaming/docker-compose.yaml up -d
+```
 
-### 6. Start the Analytics Layer (Superset)
-Start Apache Superset to visualize the Gold layer metrics. The container will automatically install the Trino driver, initialize the database, and import the zero-touch dashboards.
+4. Wait for Kafka Connect to become healthy, then register the connectors:
+- **Linux/macOS:** `./streaming/register_connectors.sh`
+- **Windows:** `.\streaming\register_connectors.ps1`
+
+5. Start Superset:
 ```bash
 docker-compose -f superset/docker-compose.yml up -d --build
 ```
-Access the Superset UI at `http://localhost:8088` (default login: `admin`/`admin_change_me` from `superset/.env`). Navigate to **Dashboards** to view the final analytics.
+
+### 3. Trigger the Data Pipelines
+
+Once Airflow is healthy, access `http://localhost:8081` using the credentials configured in `infra/.env`.
+
+For the first run or a manual demo refresh:
+1. Trigger `dag_lakehouse_bronze`
+2. Trigger `dag_lakehouse_analytics`
+
+### 4. Access the Analytical Layer
+
+- Streamlit operational UI: `http://localhost:8501`
+- Trino UI: `http://localhost:8080`
+- Airflow UI: `http://localhost:8081`
+- Elementary UI: `http://localhost:8082`
+- Superset UI: `http://localhost:8088`
+
+Use the credentials configured in the corresponding `.env` files rather than hardcoded defaults.
+
+## Operational Notes
+
+- Give Kafka Connect roughly a minute to initialize before registering connectors.
+- Airflow, Elementary, and Superset can take a few minutes to become fully ready after container startup.
+- The connector registration flow templates the Debezium source credentials from `streaming/.env`, so those values must match the source system configuration.
+- The optional S3 sink connector files remain in the repository as supporting artifacts, but the primary analytical path in this project is the pull-based CDC flow into Iceberg Raw tables.
+
+## Known Tradeoffs and Future Improvements
+
+- The platform is optimized for local demonstration and technical evaluation rather than multi-user production deployment.
+- Some recovery and historical rebuild behaviors are intentionally surfaced because local ephemeral infrastructure is part of the engineering challenge being demonstrated.
+- Access control, secrets management, deployment automation, and production-grade observability could be extended further in a cloud deployment variant.
+- Fleet utilization is currently modeled from trip duration over observed active telemetry hours; a production implementation could extend this with richer utilization business rules and operating thresholds.
