@@ -2,7 +2,7 @@
 
 ![Tech Stack Badges](https://img.shields.io/badge/Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white) ![Trino](https://img.shields.io/badge/Trino-DD00A1?style=for-the-badge&logo=trino&logoColor=white) ![Apache Iceberg](https://img.shields.io/badge/Apache%20Iceberg-00B4EB?style=for-the-badge&logo=apache&logoColor=white) ![dbt](https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white) ![Airflow](https://img.shields.io/badge/Airflow-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white) ![Superset](https://img.shields.io/badge/Superset-00A699?style=for-the-badge&logo=apachesuperset&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-![Logistics Operations Command](assets/project - LCC.gif)
+![Logistics Operations Command]("assets/project - LCC.gif")
 
 Local operating view of the simulator that drives the CDC, telemetry, and analytics workload.
 
